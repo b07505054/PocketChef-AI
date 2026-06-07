@@ -1,0 +1,235 @@
+{
+  "artifact_type": "pocketchef_core_value_evidence",
+  "schema_version": 1,
+  "generated_at": "2026-06-07T06:27:46.844983+00:00",
+  "rule": [
+    "Input source must be explicit.",
+    "Compiler/runtime decision must be explicit.",
+    "Execution or serving metric impact must be explicit."
+  ],
+  "scope": {
+    "primary_repos": [
+      "ml-graph-compiler-runtime",
+      "heterogeneous-inference-runtime"
+    ],
+    "excluded_from_main_plan": [
+      "inference-validation-platform",
+      "mini-llm-serving-runtime-demo"
+    ],
+    "exclusion_reason": "Not part of the current PocketChef execution path unless validating or extending an existing measured metric."
+  },
+  "source_artifacts": {
+    "compiler": {
+      "pipeline_manifest": {
+        "source_repo": "ml-graph-compiler-runtime",
+        "source_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/compiler_artifacts/generated/compiler_pipeline_manifest.json",
+        "exists": true,
+        "sha256": "0a89328a03443387bba85a9884e46f93e2633bee7b059f268e066536e801635f"
+      },
+      "lowered_graph": {
+        "source_repo": "ml-graph-compiler-runtime",
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_lowered_graph.json",
+        "exists": true,
+        "sha256": "cf9b6f6f61a80b314badd14a28005fc4d73ba47af7394ece5ed63f4215ea2213"
+      },
+      "memory_plan": {
+        "source_repo": "ml-graph-compiler-runtime",
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_memory_plan.json",
+        "exists": true,
+        "sha256": "227ee9e0080bba421dcca478a6a3f2fdd524ab5d82e80446cd085de58cbd4c4e"
+      },
+      "execution_plan": {
+        "source_repo": "ml-graph-compiler-runtime",
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_execution_plan_v2.json",
+        "exists": true,
+        "sha256": "9ea3d8975cede2c79ff6d9abc79d5c03f56d0af5d68618fbb00af9eeba0facca"
+      },
+      "cost_report": {
+        "source_repo": "ml-graph-compiler-runtime",
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_cost_report.json",
+        "exists": true,
+        "sha256": "1f4450b6908d08163711e85e5b8560ca6f9c9c54acb8e54d2f9798ae74ee0199"
+      },
+      "cost_planner": {
+        "source_repo": "ml-graph-compiler-runtime",
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_cost_based_planner.json",
+        "exists": true,
+        "sha256": "da7a5cf9662ccc2baa25648d2607098740afdd2c504b17d9020826e53f30d303"
+      },
+      "static_schedule": {
+        "source_repo": "ml-graph-compiler-runtime",
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_static_schedule.json",
+        "exists": true,
+        "sha256": "ee4710329594eb2729687cc87535293cd4a5f5983745264de411455b7945ea6d"
+      },
+      "partition": {
+        "source_repo": "ml-graph-compiler-runtime",
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_subgraph_partition.json",
+        "exists": true,
+        "sha256": "610c865e71eac115e0c71fd92e02d0cb5cfad413bbb87a2eed3cb9d6687ff48b"
+      }
+    },
+    "runtime": {
+      "runtime_comparison": {
+        "source_repo": "heterogeneous-inference-runtime",
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/runtime_comparison.json",
+        "exists": true,
+        "sha256": "4827869a82f3d5c653c35bb41515f23378ea43a164e78d53557a57d421e4c48b"
+      },
+      "video_pipeline": {
+        "source_repo": "heterogeneous-inference-runtime",
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/video_pipeline_metrics.json",
+        "exists": true,
+        "sha256": "40b77c3eb0259bdf73be801f1520e116ba2ea9ac6d5a4b231c4e5698bdab729b"
+      },
+      "backend_validation": {
+        "source_repo": "heterogeneous-inference-runtime",
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/backend_validation_summary.json",
+        "exists": true,
+        "sha256": "d71c349c247a956462001ac82cd55e3ebc2ca5e3a2e6916204f377589c4625bd"
+      },
+      "operator_profile": {
+        "source_repo": "heterogeneous-inference-runtime",
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/onnx_operator_profile_summary.json",
+        "exists": true,
+        "sha256": "f9d18895905bdb145a3faf3ee4b8ceef253125a54558ff27f67a5b731712e71d"
+      }
+    }
+  },
+  "rows": [
+    {
+      "variant": "Base",
+      "input_source": "PocketChef iPhone camera snapshot + YOLO-Seg FP32 Core ML model output",
+      "decision_type": "baseline_runtime_path",
+      "decision_artifact": "PocketChef-AI iOS app mode=Baseline",
+      "compiler_or_runtime_decision": "Use default Vision/Core ML execution path with no cross-repo optimization claim.",
+      "metric_before": null,
+      "metric_after": {
+        "status": "pending_real_iphone_export",
+        "metrics": [
+          "p50_latency_ms",
+          "p95_latency_ms",
+          "fps",
+          "mask_latency_ms"
+        ]
+      },
+      "metric_impact": "Baseline row defines the reference; no improvement claim.",
+      "source_repo": "PocketChef-AI",
+      "evidence_type": "app_measurement_pending"
+    },
+    {
+      "variant": "Run",
+      "input_source": "External CV runtime benchmark input from heterogeneous-inference-runtime; same-class CV inference workload, not yet PocketChef YOLO-Seg iPhone export.",
+      "decision_type": "runtime_backend_policy",
+      "decision_artifact": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/video_pipeline_metrics.json",
+      "compiler_or_runtime_decision": "Select CoreMLExecutionProvider video pipeline over CPU-only external CV baseline.",
+      "metric_before": {
+        "name": "external_cv_cpu_baseline",
+        "latency_ms": 5.0,
+        "runtime": "ONNX Runtime",
+        "backend": "CPU EP"
+      },
+      "metric_after": {
+        "name": "external_cv_coreml_video_pipeline",
+        "latency_ms": 2.744,
+        "fps": 29.832,
+        "runtime": "ONNXRuntimeCVBackend",
+        "backend": "CoreMLExecutionProvider"
+      },
+      "metric_impact": {
+        "latency_reduction_percent": 45.12,
+        "note": "External CV runtime evidence; replace with PocketChef YOLO-Seg iPhone benchmark when exported."
+      },
+      "source_repo": "heterogeneous-inference-runtime",
+      "evidence_type": "external_cv_runtime_evidence"
+    },
+    {
+      "variant": "Comp",
+      "input_source": "CV graph abstraction in ml-graph-compiler-runtime/apps/run_cv_graph_demo.cpp",
+      "decision_type": "compiler_lowering_pass_optimization_pipeline",
+      "decision_artifact": "/Users/allen/Documents/Codex/project/PocketChef-AI/compiler_artifacts/generated/compiler_pipeline_manifest.json",
+      "compiler_or_runtime_decision": "Run ShapeInference, Canonicalization, DTypePropagation, FusionCandidate, MemoryPlanning, BackendPlacement, and Scheduling; lower graph into execution artifacts.",
+      "metric_before": {
+        "name": "pre_memory_planning_and_unselected_all_metal_plan",
+        "peak_activation_mb_estimate": 19.529,
+        "reference_plan": "current",
+        "estimated_latency_ms": 1.49
+      },
+      "metric_after": {
+        "name": "lowered_compiler_selected_plan",
+        "peak_activation_mb_estimate": 14.798,
+        "saved_activation_mb_estimate": 4.731,
+        "reference_plan": "all_metal",
+        "estimated_latency_ms": 0.76,
+        "lowered_op_count": 4,
+        "fusion_count": 1
+      },
+      "metric_impact": {
+        "estimated_latency_reduction_percent": 48.99,
+        "estimated_memory_reduction_mb": 4.731,
+        "lowering_and_optimization_passes": [
+          "ShapeInferencePass",
+          "CanonicalizationPass",
+          "DTypePropagationPass",
+          "FusionCandidatePass",
+          "MemoryPlanningPass",
+          "BackendPlacementPass",
+          "SchedulingPass"
+        ],
+        "note": "Compiler-estimated metric impact from a PocketChef-triggered ml-graph-compiler-runtime pipeline run."
+      },
+      "source_repo": "ml-graph-compiler-runtime",
+      "evidence_type": "compiler_pipeline_artifact_estimate"
+    },
+    {
+      "variant": "Zip",
+      "input_source": "YOLO-Seg Core ML compiled model family from PocketChef-AI/models.",
+      "decision_type": "model_compression_policy",
+      "decision_artifact": "PocketChef-AI/compression_artifacts/model_compression_report.json",
+      "compiler_or_runtime_decision": "Zip mode selects quantization and pruning candidates before FP32 fallback; speedup/accuracy claims remain gated until real compression is generated.",
+      "metric_before": {
+        "name": "yolo_food_s_seg_fp32.mlmodelc",
+        "model_size_mb": 22.746,
+        "compression": "none"
+      },
+      "metric_after": {
+        "quantization": {
+          "name": "yolo_food_s_seg_int8.mlmodelc",
+          "model_size_mb": 22.746,
+          "status": "placeholder_copy_pending_real_quantization"
+        },
+        "pruning": {
+          "name": "yolo_food_s_seg_pruned.mlmodelc",
+          "model_size_mb": 22.746,
+          "status": "placeholder_copy_pending_real_pruning"
+        }
+      },
+      "metric_impact": {
+        "status": "policy_backed_placeholder",
+        "note": "INT8 and pruned artifacts are copied placeholders until real quantization/pruning is generated; do not report speedup or accuracy improvement from them yet."
+      },
+      "source_repo": "PocketChef-AI",
+      "evidence_type": "policy_backed_model_compression"
+    },
+    {
+      "variant": "All",
+      "input_source": "Best measured PocketChef model + compiler decision artifact + runtime policy artifact.",
+      "decision_type": "combined_path",
+      "decision_artifact": "benchmark_reports/core_value_evidence.json",
+      "compiler_or_runtime_decision": "Combine only decisions that already answer input, decision, and metric impact.",
+      "metric_before": null,
+      "metric_after": {
+        "status": "pending_end_to_end_measurement",
+        "required_inputs": [
+          "Base real iPhone metrics",
+          "Run PocketChef runtime metrics",
+          "Comp measured or clearly simulated compiler metric",
+          "Zip measured compression metric"
+        ]
+      },
+      "metric_impact": "No headline combined number until end-to-end PocketChef measurement exists.",
+      "source_repo": "PocketChef-AI",
+      "evidence_type": "rollup_pending"
+    }
+  ]
+}

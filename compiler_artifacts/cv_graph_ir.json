@@ -1,0 +1,49 @@
+{
+  "artifact_type": "cv_graph_ir",
+  "evidence_type": "compiler_simulation",
+  "model": "yolo_food_detector",
+  "input": {
+    "name": "camera_frame",
+    "shape": [1, 3, 640, 640],
+    "dtype": "fp32"
+  },
+  "ops": [
+    {
+      "name": "stem_conv",
+      "op_type": "Conv2D",
+      "inputs": ["camera_frame", "stem_weight"],
+      "outputs": ["stem_conv_out"]
+    },
+    {
+      "name": "stem_bn",
+      "op_type": "BatchNorm",
+      "inputs": ["stem_conv_out", "stem_bn_param"],
+      "outputs": ["stem_bn_out"]
+    },
+    {
+      "name": "stem_act",
+      "op_type": "SiLU",
+      "inputs": ["stem_bn_out"],
+      "outputs": ["stem_act_out"]
+    },
+    {
+      "name": "neck_conv",
+      "op_type": "Conv2D",
+      "inputs": ["stem_act_out", "neck_weight"],
+      "outputs": ["neck_conv_out"]
+    },
+    {
+      "name": "detect_head",
+      "op_type": "Detect",
+      "inputs": ["neck_conv_out"],
+      "outputs": ["raw_boxes", "raw_scores"]
+    },
+    {
+      "name": "nms",
+      "op_type": "NMS",
+      "inputs": ["raw_boxes", "raw_scores"],
+      "outputs": ["detections"]
+    }
+  ]
+}
+

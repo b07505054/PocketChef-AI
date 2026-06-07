@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PocketChef-AI Optimization Dashboard</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101214;
+      --panel: #181c20;
+      --panel-2: #20262b;
+      --text: #f5f7f7;
+      --muted: #aab2b8;
+      --accent: #47d68c;
+      --blue: #61a8ff;
+      --line: #303941;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      padding: 20px 24px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #111518;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 38px);
+      letter-spacing: 0;
+    }
+    header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 920px;
+      line-height: 1.45;
+    }
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+      gap: 16px;
+      padding: 16px;
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      min-width: 0;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(160px, 1fr));
+      gap: 8px;
+    }
+    .stage {
+      min-height: 86px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+    }
+    .stage strong {
+      display: block;
+      font-size: 13px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .stage span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .matrix {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .matrix th, .matrix td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    .matrix th { color: var(--muted); font-weight: 600; }
+    .matrix td { line-height: 1.35; }
+    .badge {
+      display: inline-block;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: #24342c;
+      color: var(--accent);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .metric {
+      padding: 12px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .metric .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .metric .value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    pre {
+      margin: 0;
+      max-height: 520px;
+      overflow: auto;
+      padding: 12px;
+      background: #0c0f11;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: #d9e7df;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    @media (max-width: 980px) {
+      main { grid-template-columns: 1fr; }
+      .pipeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PocketChef-AI Optimization Dashboard</h1>
+    <p>Every technical claim must answer three questions: where the input came from, which compiler/runtime decision was made, and how that decision affected an execution metric.</p>
+  </header>
+  <main>
+    <div>
+      <section>
+        <h2>Pipeline</h2>
+        <div class="pipeline">
+          <div class="stage"><strong>Input</strong><span>iPhone camera snapshot, YOLO-Seg output, or external CV benchmark artifact.</span></div>
+          <div class="stage"><strong>Decision</strong><span>Runtime backend policy or compiler graph/memory/backend placement plan.</span></div>
+          <div class="stage"><strong>Metric</strong><span>Latency, FPS, memory, model size, or clearly marked pending measurement.</span></div>
+        </div>
+      </section>
+
+      <section style="margin-top:16px">
+        <h2>Compiler/Runtime Value Matrix</h2>
+        <table class="matrix">
+          <thead>
+            <tr><th>Variant</th><th>Input Source</th><th>Decision</th><th>Metric Impact</th><th>Source</th></tr>
+          </thead>
+          <tbody id="matrix"></tbody>
+        </table>
+      </section>
+
+      <section style="margin-top:16px">
+        <h2>Optimization Summary</h2>
+        <div class="metrics" id="summary"></div>
+      </section>
+    </div>
+
+    <section>
+      <h2>Core Evidence Artifact</h2>
+      <pre id="json">Loading...</pre>
+    </section>
+  </main>
+
+  <script>
+    function value(v, suffix = "") {
+      return v === null || v === undefined ? "pending" : `${v}${suffix}`;
+    }
+
+    function numberValue(v, suffix = "", digits = 1) {
+      return typeof v === "number" ? `${v.toFixed(digits)}${suffix}` : "pending";
+    }
+
+    function metric(label, val) {
+      return `<div class="metric"><div class="label">${label}</div><div class="value">${val}</div></div>`;
+    }
+
+    function short(text, max = 120) {
+      if (text === null || text === undefined) return "pending";
+      const value = typeof text === "string" ? text : JSON.stringify(text);
+      return value.length > max ? `${value.slice(0, max)}...` : value;
+    }
+
+    async function load() {
+      const data = await fetch("/api/snapshot").then(r => r.json());
+      const core = data.core_value || {};
+      const llm = data.llm || {};
+      const llmServing = data.llm_serving || {};
+      const rows = [...(core.rows || [])];
+      if (llm.artifact_type) {
+        rows.push({
+          variant: "LLM",
+          evidence_type: llm.status || "pending",
+          input_source: llm.input_source,
+          compiler_or_runtime_decision: `${llm.decision_type}: ${llm.backend || "pending"} using ${llm.preferred_model || "pending"}`,
+          metric_impact: llm.metrics || {},
+          source_repo: llm.source_repo || "PocketChef-AI"
+        });
+      }
+      if (llmServing.artifact_type) {
+        const metric = llmServing.metric_summary || {};
+        rows.push({
+          variant: "LLM Serving",
+          evidence_type: "serving_artifact_bridge",
+          input_source: llmServing.input_source,
+          compiler_or_runtime_decision: (llmServing.decision_chain || []).map(row => `${row.stage}: ${typeof row.decision === "string" ? row.decision : JSON.stringify(row.decision)}`).join(" | "),
+          metric_impact: {
+            prefill_latency_ms: metric.prefill_latency_ms,
+            p95_decode_latency_ms: metric.p95_decode_latency_ms,
+            tokens_per_second: metric.tokens_per_second,
+            scheduler_improvement: metric.scheduler_improvement
+          },
+          source_repo: "ml-graph-compiler-runtime + heterogeneous-inference-runtime"
+        });
+      }
+      document.getElementById("matrix").innerHTML = rows.map(row => `
+        <tr>
+          <td><strong>${row.variant}</strong><br><span class="badge">${row.evidence_type}</span></td>
+          <td>${short(row.input_source)}</td>
+          <td>${short(row.compiler_or_runtime_decision)}</td>
+          <td>${short(row.metric_impact)}</td>
+          <td>${row.source_repo}</td>
+        </tr>
+      `).join("");
+      const run = rows.find(row => row.variant === "Run") || {};
+      const comp = rows.find(row => row.variant === "Comp") || {};
+      const llmMetrics = llm.metrics || {};
+      const runImpact = run.metric_impact || {};
+      const compImpact = comp.metric_impact || {};
+      const servingMetrics = llmServing.metric_summary || {};
+      const schedulerImprovement = servingMetrics.scheduler_improvement || {};
+      document.getElementById("summary").innerHTML = [
+        metric("Runtime evidence", value(runImpact.latency_reduction_percent, "%")),
+        metric("Compiler latency estimate", value(compImpact.estimated_latency_reduction_percent, "%")),
+        metric("Compiler memory estimate", value(compImpact.estimated_memory_reduction_mb, " MB")),
+        metric("LLM TTFT", numberValue(llmMetrics.ttft_ms, " ms")),
+        metric("LLM decode", numberValue(llmMetrics.tokens_per_second, " tok/s")),
+        metric("Serving throughput", numberValue(servingMetrics.tokens_per_second, " tok/s")),
+        metric("Serving p95 gain", value(schedulerImprovement.p95_latency_reduction_percent, "%")),
+        metric("Headline status", "artifact-gated"),
+      ].join("");
+      document.getElementById("json").textContent = JSON.stringify({ core_value: core, llm, llm_serving: llmServing }, null, 2);
+    }
+
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "artifact_type": "cv_fusion_report",
+  "evidence_type": "compiler_simulation",
+  "fusion_pass": "PocketChefCVFusionPass",
+  "fusion_groups": [
+    {
+      "group_id": "stem_conv_bn_silu_0",
+      "pattern": "Conv2D + BatchNorm + SiLU",
+      "lowered_op": "FusedConvBatchNormSiLU",
+      "status": "eligible",
+      "reason": "single consumer chain, static shape, supported activation"
+    }
+  ],
+  "unfused_ops": ["detect_head", "nms"],
+  "notes": "This artifact models compiler optimization. Real Core ML execution must be measured separately."
+}
+

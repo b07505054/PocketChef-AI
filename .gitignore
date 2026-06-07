@@ -1,0 +1,15 @@
+.DS_Store
+__pycache__/
+.venv/
+*.pyc
+DerivedData/
+ios/PocketChefAI/build/
+models/*.onnx
+models/*.pt
+models/*.mlpackage
+models/*.mlmodel
+models/*.mlmodelc
+*.xcuserdata/
+xcuserdata/
+*.xcuserstate
+runs/

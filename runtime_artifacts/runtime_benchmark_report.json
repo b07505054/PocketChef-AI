@@ -1,0 +1,35 @@
+{
+  "artifact_type": "runtime_benchmark_report",
+  "evidence_type": "sample_estimate",
+  "status": "replace_with_real_iphone_measurements",
+  "variants": [
+    {
+      "variant": "baseline",
+      "runtime": "Core ML default",
+      "precision": "fp32",
+      "latency_ms_p50": null,
+      "latency_ms_p95": null,
+      "fps": null,
+      "peak_memory_mb": null
+    },
+    {
+      "variant": "runtime",
+      "runtime": "Core ML computeUnits=all",
+      "precision": "fp32",
+      "latency_ms_p50": null,
+      "latency_ms_p95": null,
+      "fps": null,
+      "peak_memory_mb": null
+    },
+    {
+      "variant": "combined",
+      "runtime": "Core ML ANE-preferred",
+      "precision": "best_compressed",
+      "latency_ms_p50": null,
+      "latency_ms_p95": null,
+      "fps": null,
+      "peak_memory_mb": null
+    }
+  ]
+}
+

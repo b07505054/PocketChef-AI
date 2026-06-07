@@ -1,0 +1,24 @@
+{
+  "trigger": "runtime_backend_overload",
+  "observations": [
+    {
+      "backend": "Metal",
+      "observed_latency_ms": 2.84,
+      "overloaded": true
+    }
+  ],
+  "before": {
+    "name": "all_metal",
+    "total_latency_ms": 0.76,
+    "switch_cost_ms": 0,
+    "gpu_occupancy": 1,
+    "assignments": ["conv1 -> Metal", "pool1 -> Metal", "flatten -> Metal", "linear -> Metal"]
+  },
+  "after": {
+    "name": "runtime_replanned_cpu_fallback",
+    "total_latency_ms": 2.1,
+    "switch_cost_ms": 0,
+    "gpu_occupancy": 0,
+    "assignments": ["conv1 -> CPU", "pool1 -> CPU", "flatten -> CPU", "linear -> CPU"]
+  }
+}

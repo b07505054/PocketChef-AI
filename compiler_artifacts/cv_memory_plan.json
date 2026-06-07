@@ -1,0 +1,19 @@
+{
+  "artifact_type": "cv_memory_plan",
+  "evidence_type": "compiler_simulation",
+  "planner": "activation_lifetime_reuse",
+  "naive_activation_mb_estimate": 38.4,
+  "planned_peak_activation_mb_estimate": 24.7,
+  "estimated_savings_mb": 13.7,
+  "reuse_events": [
+    {
+      "tensor": "stem_bn_out",
+      "reuses_buffer_from": "stem_conv_out"
+    },
+    {
+      "tensor": "neck_conv_out",
+      "reuses_buffer_from": "stem_act_out"
+    }
+  ]
+}
+

@@ -1,0 +1,26 @@
+{
+  "artifact_type": "cv_execution_plan",
+  "evidence_type": "compiler_simulation",
+  "plan_id": "pocketchef_cv_plan_v1",
+  "steps": [
+    {
+      "index": 0,
+      "op": "FusedConvBatchNormSiLU",
+      "backend": "CoreML",
+      "runtime_action": "dispatch_fused_feature_extractor"
+    },
+    {
+      "index": 1,
+      "op": "Detect",
+      "backend": "CoreML",
+      "runtime_action": "dispatch_detection_head"
+    },
+    {
+      "index": 2,
+      "op": "NMS",
+      "backend": "CPU",
+      "runtime_action": "postprocess_boxes"
+    }
+  ]
+}
+

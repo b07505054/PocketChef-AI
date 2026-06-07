@@ -1,0 +1,61 @@
+{
+  "artifact_type": "pocketchef_llm_benchmark_report",
+  "status": "schema_ready_pending_live_run",
+  "input_source": "PocketChef selected YOLO-Seg ingredient context plus user typed question from Snapshot Sheet",
+  "decision_type": "local_llm_serving_runtime",
+  "decision_artifact": "Ollama /api/chat streaming response on local LAN",
+  "source_repo": "PocketChef-AI",
+  "backend": "ollama_local_lan",
+  "preferred_model": "qwen2.5:3b-instruct",
+  "fallback_model": "llama3.2:3b",
+  "modes": {
+    "Base": {
+      "decision": "default Ollama streaming decode",
+      "policy": "full context prompt, num_predict=180, temperature=0.25"
+    },
+    "Run": {
+      "decision": "runtime policy",
+      "policy": "keep_alive=10m, shorter answer budget, streaming TTFT measurement"
+    },
+    "Comp": {
+      "decision": "compiler policy",
+      "policy": "prompt lowering into compact structured context, num_predict=140"
+    },
+    "All": {
+      "decision": "combined policy",
+      "policy": "keep_alive=10m plus prompt lowering and shortest answer budget"
+    }
+  },
+  "prompt_contract": {
+    "system_rules": [
+      "answer as PocketChef visual food assistant",
+      "use only detected ingredients as visual facts",
+      "clearly mark assumptions",
+      "no medical claims",
+      "keep answer under 120 words"
+    ],
+    "user_context": [
+      "detected ingredient labels and confidence",
+      "estimated nutrition",
+      "current recipe plan",
+      "typed user question"
+    ]
+  },
+  "metrics": {
+    "ttft_ms": null,
+    "total_latency_ms": null,
+    "prompt_tokens": null,
+    "completion_tokens": null,
+    "tokens_per_second": null
+  },
+  "sample_questions": [
+    "What can I cook from this?",
+    "How do I make it higher protein?",
+    "Is this good before workout?"
+  ],
+  "notes": [
+    "This artifact is the PocketChef schema for local free LLM serving benchmarks.",
+    "The iOS app displays live metrics and can copy a single-run benchmark JSON after each Ask LLM request.",
+    "Replace null metrics with measured values after running Ollama on the local Mac."
+  ]
+}

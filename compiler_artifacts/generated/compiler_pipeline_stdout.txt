@@ -1,0 +1,124 @@
+=== CV Graph Compiler Demo ===
+=== Compiler Pass Pipeline ===
+[PassManager] Running ShapeInferencePass
+[ShapeInference] Running shape inference
+[PassManager] Running CanonicalizationPass
+[CanonicalizationPass] Searching canonicalization opportunities
+[PassManager] Running DTypePropagationPass
+[DTypePropagationPass] Propagating tensor dtypes: default float32
+[PassManager] Running FusionCandidatePass
+[FusionCandidatePass] Searching fusion candidates
+  rewriting: Conv2D + BatchNorm + ReLU -> FusedConvBatchNormReLU
+[PassManager] Running MemoryPlanningPass
+[MemoryPlanner] Tensor lifetime analysis
+  input | first=0 last=0 offset=0 persistent=true size=150528
+  conv_weight | first=0 last=0 offset=150528 persistent=true size=432
+  bn_param | first=-1 last=-1 offset=150960 persistent=true size=16
+  conv_out | first=-1 last=-1 offset=150976 persistent=false size=788544
+  bn_out | first=-1 last=-1 offset=939520 persistent=false size=788544
+  relu_out | first=0 last=1 offset=150976 persistent=false size=788544
+  pool_out | first=1 last=2 offset=150976 persistent=false size=197136
+  flat_out | first=2 last=3 offset=150976 persistent=false size=197136
+  linear_weight | first=3 last=3 offset=1728064 persistent=true size=1971360
+  logits | first=3 last=3 offset=150976 persistent=false size=10
+[MemoryPlanner] Reuse events
+  relu_out reuses buffer from conv_out at offset 150976
+  pool_out reuses buffer from conv_out at offset 150976
+  flat_out reuses buffer from conv_out at offset 150976
+  logits reuses buffer from conv_out at offset 150976
+[MemoryPlanner] Naive memory: 4882250 float elements
+[MemoryPlanner] Planned peak memory: 3699424 float elements
+[MemoryPlanner] Saved memory: 1182826 float elements
+[PassManager] Running BackendPlacementPass
+[BackendPlacementPass] Assigning backend placement
+  conv1 -> MockGPU/Metal candidate
+  pool1 -> CPU fallback
+  flatten -> CPU fallback
+  linear -> MockGPU/Metal candidate
+[PassManager] Running SchedulingPass
+[SchedulingPass] Building static topological execution schedule
+  [0] conv1 | FusedConvBatchNormReLU
+  [1] pool1 | MaxPool
+  [2] flatten | Flatten
+  [3] linear | Linear
+[PassManager] Pipeline complete
+
+=== Lowered Graph IR ===
+[0] conv1 -> LoweredFusedConvBatchNormReLU | backend=Metal | mem_offset=150976
+[1] pool1 -> LoweredMaxPool | backend=CPU | mem_offset=150976
+[2] flatten -> LoweredFlatten | backend=CPU | mem_offset=150976
+[3] linear -> LoweredLinear | backend=Metal | mem_offset=150976
+[LoweredGraph] Exported lowered IR to ../trace/cv_lowered_graph.json
+
+=== ExecutionPlan IR v2 ===
+[step 0] LoweredFusedConvBatchNormReLU | backend=Metal | mem_offset=150976 | deps=[] | launch=threadgroup=256
+[step 1] LoweredMaxPool | backend=CPU | mem_offset=150976 | deps=[0] | launch=host-call
+[step 2] LoweredFlatten | backend=CPU | mem_offset=150976 | deps=[1] | launch=host-call
+[step 3] LoweredLinear | backend=Metal | mem_offset=150976 | deps=[2] | launch=threadgroup=256
+[ExecutionPlanV2] Exported plan to ../trace/cv_execution_plan_v2.json
+
+=== Static Execution Schedule ===
+[0] conv1 | FusedConvBatchNormReLU | backend=Metal | mem_offset=150976
+[1] pool1 | MaxPool | backend=CPU | mem_offset=150976
+[2] flatten | Flatten | backend=CPU | mem_offset=150976
+[3] linear | Linear | backend=Metal | mem_offset=150976
+[ExecutionSchedule] Exported schedule to ../trace/cv_static_schedule.json
+
+=== Subgraph Partition ===
+subgraph 0 | backend=Metal | ops=conv1 
+subgraph 1 | backend=CPU | ops=pool1 flatten 
+subgraph 2 | backend=Metal | ops=linear 
+[SubgraphPartitioner] Exported partitions to ../trace/cv_subgraph_partition.json
+
+=== Compiler Cost Report ===
+conv1 | FusedConvBatchNormReLU | backend=Metal | read_bytes=603840 | write_bytes=3154176 | flops=42581376 | intensity=11.3308 | launch_cost=0.08 | backend_switch_cost=0 | actual_backend=N/A | actual_latency_ms=-1
+    fusion: Conv2D+BatchNorm+ReLU fused
+pool1 | MaxPool | backend=CPU | read_bytes=3154176 | write_bytes=788544 | flops=0 | intensity=0 | launch_cost=0.005 | backend_switch_cost=0.02 | actual_backend=N/A | actual_latency_ms=-1
+flatten | Flatten | backend=CPU | read_bytes=788544 | write_bytes=788544 | flops=0 | intensity=0 | launch_cost=0.005 | backend_switch_cost=0 | actual_backend=N/A | actual_latency_ms=-1
+linear | Linear | backend=Metal | read_bytes=8673984 | write_bytes=40 | flops=3942720 | intensity=0.454543 | launch_cost=0.08 | backend_switch_cost=0.02 | actual_backend=N/A | actual_latency_ms=-1
+[CostReport] Exported report to ../trace/cv_cost_report.json
+
+[PlannerCandidate] current
+  total_latency_ms=1.49
+  switch_cost_ms=0.04
+  gpu_occupancy=0.355705
+  memory_pressure_mb=18
+    conv1 -> Metal
+    pool1 -> CPU
+    flatten -> CPU
+    linear -> Metal
+
+[PlannerCandidate] all_metal
+  total_latency_ms=0.76
+  switch_cost_ms=0
+  gpu_occupancy=1
+  memory_pressure_mb=18
+    conv1 -> Metal
+    pool1 -> Metal
+    flatten -> Metal
+    linear -> Metal
+
+[PlannerCandidate] metal_pool_only
+  total_latency_ms=0.95
+  switch_cost_ms=0.04
+  gpu_occupancy=0.747368
+  memory_pressure_mb=18
+    conv1 -> Metal
+    pool1 -> Metal
+    flatten -> CPU
+    linear -> Metal
+
+=== BEST PLAN ===
+all_metal
+[CostBasedPlanner] Exported planner candidates to ../trace/cv_cost_based_planner.json
+[RuntimeObservation] Metal latency=2.84 ms
+  detected overload on Metal backend
+
+=== Runtime Replanned ===
+  conv1 -> CPU
+  pool1 -> CPU
+  flatten -> CPU
+  linear -> CPU
+[RuntimeReplanner] Exported replan trace to ../trace/cv_runtime_replan.json
+[RuntimeTimeline] Exported timeline to ../trace/cv_runtime_timeline.json
+CV graph compiler demo complete.

@@ -1,0 +1,177 @@
+{
+  "artifact_type": "pocketchef_compiler_pipeline_manifest",
+  "schema_version": 1,
+  "generated_at": "2026-06-07T06:27:46.816331+00:00",
+  "integration_level": "level_2_5_mac_side_compiler_pipeline",
+  "truth_boundary": {
+    "what_is_real": "PocketChef invokes ml-graph-compiler-runtime on the Mac and imports generated compiler trace artifacts.",
+    "what_is_not_claimed": "The iPhone app does not live-compile the YOLO-Seg Core ML graph at runtime."
+  },
+  "input_source": {
+    "pocketchef_runtime_input": "iPhone snapshot + YOLO-Seg Core ML segmentation output",
+    "compiler_pipeline_input": "CV graph abstraction in ml-graph-compiler-runtime/apps/run_cv_graph_demo.cpp",
+    "model_family": "YOLO-Seg style CV graph: conv block + pooling/flatten/head + postprocess policy mapping"
+  },
+  "compiler_repo": {
+    "name": "ml-graph-compiler-runtime",
+    "path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime",
+    "binary": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/build/run_cv_graph_demo",
+    "app_source": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/apps/run_cv_graph_demo.cpp"
+  },
+  "lowering_and_optimization_passes": [
+    {
+      "name": "ShapeInferencePass",
+      "decision": "infer tensor shapes for downstream lowering and memory planning",
+      "metric_link": "enables byte/flop estimates and activation-size accounting"
+    },
+    {
+      "name": "CanonicalizationPass",
+      "decision": "normalize graph form before pattern matching",
+      "metric_link": "makes fusion and lowering deterministic"
+    },
+    {
+      "name": "DTypePropagationPass",
+      "decision": "propagate float32 dtype through the CV graph",
+      "metric_link": "feeds memory-size and bandwidth estimates"
+    },
+    {
+      "name": "FusionCandidatePass",
+      "decision": "rewrite Conv2D + BatchNorm + ReLU into FusedConvBatchNormReLU",
+      "metric_link": "reduces launch count and intermediate tensor writes"
+    },
+    {
+      "name": "MemoryPlanningPass",
+      "decision": "reuse activation buffers with non-overlapping lifetimes",
+      "metric_link": "reduces planned peak activation memory"
+    },
+    {
+      "name": "BackendPlacementPass",
+      "decision": "place high-intensity ops on Metal and simple shape ops on CPU",
+      "metric_link": "trades backend launch/switch cost against compute and bandwidth"
+    },
+    {
+      "name": "SchedulingPass",
+      "decision": "build a static topological execution schedule",
+      "metric_link": "produces execution order consumed by the lowered runtime plan"
+    }
+  ],
+  "generated_artifacts": {
+    "lowered_graph": {
+      "exists": true,
+      "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_lowered_graph.json",
+      "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/compiler_artifacts/generated/cv_lowered_graph.json",
+      "sha256": "cf9b6f6f61a80b314badd14a28005fc4d73ba47af7394ece5ed63f4215ea2213",
+      "bytes": 774
+    },
+    "memory_plan": {
+      "exists": true,
+      "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_memory_plan.json",
+      "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/compiler_artifacts/generated/cv_memory_plan.json",
+      "sha256": "227ee9e0080bba421dcca478a6a3f2fdd524ab5d82e80446cd085de58cbd4c4e",
+      "bytes": 505
+    },
+    "execution_plan": {
+      "exists": true,
+      "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_execution_plan_v2.json",
+      "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/compiler_artifacts/generated/cv_execution_plan_v2.json",
+      "sha256": "9ea3d8975cede2c79ff6d9abc79d5c03f56d0af5d68618fbb00af9eeba0facca",
+      "bytes": 1014
+    },
+    "static_schedule": {
+      "exists": true,
+      "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_static_schedule.json",
+      "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/compiler_artifacts/generated/cv_static_schedule.json",
+      "sha256": "ee4710329594eb2729687cc87535293cd4a5f5983745264de411455b7945ea6d",
+      "bytes": 774
+    },
+    "subgraph_partition": {
+      "exists": true,
+      "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_subgraph_partition.json",
+      "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/compiler_artifacts/generated/cv_subgraph_partition.json",
+      "sha256": "610c865e71eac115e0c71fd92e02d0cb5cfad413bbb87a2eed3cb9d6687ff48b",
+      "bytes": 241
+    },
+    "cost_report": {
+      "exists": true,
+      "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_cost_report.json",
+      "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/compiler_artifacts/generated/cv_cost_report.json",
+      "sha256": "1f4450b6908d08163711e85e5b8560ca6f9c9c54acb8e54d2f9798ae74ee0199",
+      "bytes": 1576
+    },
+    "cost_based_planner": {
+      "exists": true,
+      "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_cost_based_planner.json",
+      "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/compiler_artifacts/generated/cv_cost_based_planner.json",
+      "sha256": "da7a5cf9662ccc2baa25648d2607098740afdd2c504b17d9020826e53f30d303",
+      "bytes": 797
+    },
+    "runtime_replan": {
+      "exists": true,
+      "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_runtime_replan.json",
+      "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/compiler_artifacts/generated/cv_runtime_replan.json",
+      "sha256": "9a25b255d8899da314bd4564d79878f0065d08c88e0263f606866a0a0532227d",
+      "bytes": 614
+    },
+    "runtime_timeline": {
+      "exists": true,
+      "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/trace/cv_runtime_timeline.json",
+      "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/compiler_artifacts/generated/cv_runtime_timeline.json",
+      "sha256": "e529e7618ee2fd2f6222f51264e87ce96f7ae1c187b411baa68593479999dd85",
+      "bytes": 477
+    }
+  },
+  "metric_impact": {
+    "lowered_op_count": 4,
+    "fusion_count": 1,
+    "fusions": [
+      {
+        "op_name": "conv1",
+        "op_type": "FusedConvBatchNormReLU",
+        "note": "Conv2D+BatchNorm+ReLU fused"
+      }
+    ],
+    "memory": {
+      "naive_float_elements": 4882250,
+      "planned_peak_float_elements": 3699424,
+      "saved_float_elements": 1182826,
+      "naive_mb_estimate": 19.529,
+      "planned_peak_mb_estimate": 14.798,
+      "saved_mb_estimate": 4.731,
+      "reuse_events": [
+        {
+          "tensor": "relu_out",
+          "reuses": "conv_out",
+          "offset": 150976
+        },
+        {
+          "tensor": "pool_out",
+          "reuses": "conv_out",
+          "offset": 150976
+        },
+        {
+          "tensor": "flat_out",
+          "reuses": "conv_out",
+          "offset": 150976
+        },
+        {
+          "tensor": "logits",
+          "reuses": "conv_out",
+          "offset": 150976
+        }
+      ]
+    },
+    "planner": {
+      "chosen_plan": "all_metal",
+      "chosen_estimated_latency_ms": 0.76,
+      "comparison_plan": "current",
+      "comparison_estimated_latency_ms": 1.49,
+      "candidate_count": 3
+    }
+  },
+  "app_mapping": {
+    "mode": "Comp",
+    "display_decision": "show compiler artifact decision summary",
+    "execution_policy": "use compiler-lowered postprocess policy in PocketChef; headline claims come from this manifest and copied trace artifacts",
+    "dashboard_row": "benchmark_reports/core_value_evidence.json rows[variant=Comp]"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "artifact_type": "model_compression_report",
+  "evidence_type": "policy_backed_placeholder",
+  "source_model": "models/yolo_food_s_seg_fp32.mlmodelc",
+  "scope": "quantization_and_pruning_only",
+  "note": "INT8 and pruned artifacts are copied placeholders until real quantization/pruning is generated; do not report speedup or accuracy improvement from them yet.",
+  "variants": [
+    {
+      "model": "yolo_food_s_seg_fp32.mlmodelc",
+      "compression": "none",
+      "input_source": "models/yolo_food_s_seg_fp32.mlmodelc",
+      "decision_type": "model_compression_policy",
+      "compression_decision": "baseline uncompressed model",
+      "size_mb": 22.746,
+      "metric_before": null,
+      "metric_after": {
+        "model_size_mb": 22.746,
+        "latency_ms": null,
+        "mask_stability": null
+      },
+      "proxy_accuracy": null,
+      "status": "source_or_copied"
+    },
+    {
+      "model": "yolo_food_s_seg_int8.mlmodelc",
+      "compression": "quantization",
+      "input_source": "models/yolo_food_s_seg_fp32.mlmodelc",
+      "decision_type": "model_compression_policy",
+      "compression_decision": "INT8 quantization candidate",
+      "size_mb": 22.746,
+      "metric_before": null,
+      "metric_after": {
+        "model_size_mb": 22.746,
+        "latency_ms": null,
+        "mask_stability": null
+      },
+      "proxy_accuracy": null,
+      "status": "placeholder_copy_pending_real_quantization"
+    },
+    {
+      "model": "yolo_food_s_seg_pruned.mlmodelc",
+      "compression": "pruning",
+      "input_source": "models/yolo_food_s_seg_fp32.mlmodelc",
+      "decision_type": "model_compression_policy",
+      "compression_decision": "structured pruning candidate",
+      "size_mb": 22.746,
+      "metric_before": null,
+      "metric_after": {
+        "model_size_mb": 22.746,
+        "latency_ms": null,
+        "mask_stability": null
+      },
+      "proxy_accuracy": null,
+      "status": "placeholder_copy_pending_real_pruning"
+    }
+  ]
+}

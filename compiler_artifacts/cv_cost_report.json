@@ -1,0 +1,22 @@
+{
+  "artifact_type": "cv_cost_report",
+  "evidence_type": "compiler_simulation",
+  "model": "yolo_food_detector",
+  "rows": [
+    {
+      "op": "FusedConvBatchNormSiLU",
+      "estimated_flops": 42581376,
+      "estimated_bytes": 3758016,
+      "arithmetic_intensity": 11.33,
+      "launch_overhead_ms_estimate": 0.02
+    },
+    {
+      "op": "Detect",
+      "estimated_flops": 8400000,
+      "estimated_bytes": 1200000,
+      "arithmetic_intensity": 7.0,
+      "launch_overhead_ms_estimate": 0.02
+    }
+  ]
+}
+

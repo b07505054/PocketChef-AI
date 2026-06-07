@@ -1,0 +1,426 @@
+{
+  "artifact_type": "pocketchef_llm_serving_evidence",
+  "schema_version": 1,
+  "generated_at": "2026-06-07T14:39:26.911017+00:00",
+  "replaces_repo": {
+    "name": "mini-llm-serving-runtime-demo",
+    "reason": "PocketChef now imports compiler/runtime LLM serving artifacts directly from the primary systems repos."
+  },
+  "truth_boundary": {
+    "real": [
+      "PocketChef iOS app asks a real local Ollama model and measures TTFT/total/tokens-per-second.",
+      "PocketChef imports LLM serving compiler/runtime artifacts from ml-graph-compiler-runtime and heterogeneous-inference-runtime."
+    ],
+    "not_claimed": [
+      "PocketChef does not run vLLM, SGLang, Triton, or TensorRT directly.",
+      "PocketChef does not yet run a live multi-request LLM scheduler inside the iPhone app."
+    ]
+  },
+  "input_source": {
+    "app_input": "selected YOLO-Seg ingredient context + nutrition estimate + user typed question",
+    "compiler_input": "tiny-gpt LLM serving graph/contract from ml-graph-compiler-runtime apple_demo artifacts",
+    "runtime_input": "synthetic LLM-shaped prefill/decode workload from heterogeneous-inference-runtime"
+  },
+  "decision_chain": [
+    {
+      "stage": "prompt_context",
+      "decision": "Base uses full context; Comp/All lower prompt into compact structured visual facts.",
+      "artifact": "ios/PocketChefAI/PocketChefAI/OllamaClient.swift",
+      "metric": "prompt tokens, TTFT, total latency"
+    },
+    {
+      "stage": "serving_execution_plan",
+      "decision": "scheduling_plan.json",
+      "artifact": "llm_artifacts/serving/compiler/serving_execution_plan.json",
+      "metric": [
+        "TTFT",
+        "TPOT",
+        "latency_p95",
+        "throughput_tokens_per_s",
+        "queue_wait_p95",
+        "kv_cache_pressure",
+        "slo_violation_rate"
+      ]
+    },
+    {
+      "stage": "kv_cache_policy",
+      "decision": {
+        "kv_cache": "block_based",
+        "block_size_tokens": 16,
+        "prefix_cache_enabled": true,
+        "eviction_policy": "lru_finished_prefix",
+        "admission_policy": "prefix_aware_capacity"
+      },
+      "artifact": "llm_artifacts/serving/compiler/kv_cache_plan.json",
+      "metric": [
+        "prefix_cache_hit_rate",
+        "kv_blocks_reused",
+        "kv_blocks_evicted",
+        "admission_rejection_rate",
+        "prefill_latency_saved_ms"
+      ]
+    },
+    {
+      "stage": "runtime_scheduler",
+      "decision": "cost_aware_memory_pressure",
+      "artifact": "llm_artifacts/serving/runtime/scheduler_decision_report.json",
+      "metric": {
+        "tokens_per_second_delta": 938.095,
+        "decode_batch_efficiency_delta": 0.675,
+        "p95_latency_ms_delta": -5869.755
+      }
+    },
+    {
+      "stage": "serving_framework_positioning",
+      "decision": "vllm_sglang_style",
+      "artifact": "llm_artifacts/serving/runtime/serving_framework_report.json",
+      "metric": {
+        "ttft_ms": 38.316,
+        "tpot_p95_ms": 3.244,
+        "e2e_p95_ms": 1716.077,
+        "throughput_tokens_per_s": 1236.142,
+        "peak_kv_cache_mb": 868.75,
+        "peak_memory_mb": 1636.75,
+        "oom_events": 0
+      }
+    }
+  ],
+  "metric_summary": {
+    "ollama_live_app_metrics": "Measured in app after each Ask LLM request; see llm_artifacts/pocketchef_llm_benchmark_report.json schema and copied single-run JSON from the app.",
+    "prefill_latency_ms": 38.316,
+    "avg_decode_latency_ms": 2.519,
+    "p95_decode_latency_ms": 3.244,
+    "tokens_per_second": 1236.142,
+    "scheduler_before": {
+      "policy": "fcfs_fixed_batch",
+      "p95_latency_ms": 7585.832,
+      "tokens_per_second": 298.047,
+      "avg_decode_batch_size": 1.0,
+      "peak_kv_cache_mb": 225.0
+    },
+    "scheduler_after": {
+      "policy": "cost_aware_memory_pressure",
+      "p95_latency_ms": 1716.077,
+      "tokens_per_second": 1236.142,
+      "avg_decode_batch_size": 6.4,
+      "peak_kv_cache_mb": 868.75
+    },
+    "scheduler_improvement": {
+      "p95_latency_reduction_percent": 77.38,
+      "tokens_per_second_delta": 938.095,
+      "decode_batch_efficiency_delta": 0.675
+    },
+    "serving_framework_metrics": {
+      "ttft_ms": 38.316,
+      "tpot_p95_ms": 3.244,
+      "e2e_p95_ms": 1716.077,
+      "throughput_tokens_per_s": 1236.142,
+      "peak_kv_cache_mb": 868.75,
+      "peak_memory_mb": 1636.75,
+      "oom_events": 0
+    },
+    "runtime_profile": {
+      "model": "tiny-gpt",
+      "total_requests": 32,
+      "completed_requests": 32,
+      "rejected_requests": 0,
+      "p50_latency_ms": 1193.992,
+      "p95_latency_ms": 1716.077,
+      "p99_latency_ms": 1727.51,
+      "peak_memory_mb": 1636.75,
+      "peak_kv_cache_mb": 868.75,
+      "oom_events": 0,
+      "tokens_per_second": 1236.142
+    }
+  },
+  "validation": {
+    "source": "ml-graph-compiler-runtime/apple_demo validation manifest plus runtime artifacts",
+    "manifest": {
+      "schema_version": "0.1",
+      "artifact_type": "validation_manifest",
+      "model": "tiny-gpt",
+      "expected_outputs": [
+        "llm_graph_ir.json",
+        "serving_execution_plan.json",
+        "kv_cache_plan.json",
+        "memory_plan.json",
+        "scheduling_plan.json",
+        "artifact_provenance.json",
+        "candidate_execution_plans.json",
+        "serving_framework_contract.json",
+        "memory_timeline.json",
+        "validation_manifest.json"
+      ],
+      "checks": [
+        "artifact_schema_valid",
+        "prefill_decode_phase_present",
+        "kv_cache_capacity_valid",
+        "kv_cache_block_size_positive",
+        "kv_cache_policy_present",
+        "memory_budget_not_exceeded",
+        "scheduling_queues_present",
+        "artifact_provenance_present",
+        "candidate_plans_present",
+        "serving_framework_contract_present",
+        "memory_timeline_present"
+      ],
+      "demo_contract": {
+        "apple_demo_entry_artifacts": [
+          "llm_graph_ir.json",
+          "serving_execution_plan.json",
+          "kv_cache_plan.json",
+          "memory_plan.json",
+          "scheduling_plan.json",
+          "artifact_provenance.json",
+          "candidate_execution_plans.json",
+          "serving_framework_contract.json",
+          "memory_timeline.json",
+          "validation_manifest.json"
+        ],
+        "primary_dashboard_views": [
+          "model_graph",
+          "prefill_decode_timeline",
+          "kv_cache_blocks",
+          "memory_breakdown",
+          "scheduler_behavior",
+          "validation_status"
+        ]
+      }
+    },
+    "acceptance": [
+      "App LLM answer must show TTFT, total latency, and tokens/sec.",
+      "Serving evidence must include prefill/decode, scheduler policy, KV cache policy, and metric impact.",
+      "README must distinguish real Ollama app serving from imported/simulated multi-request serving artifacts."
+    ]
+  },
+  "source_artifacts": {
+    "compiler": {
+      "artifact_provenance": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/artifacts/apple_demo/artifact_provenance.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/compiler/artifact_provenance.json",
+        "sha256": "580cee544fe66e87fe604d16b82e9f95b9b425d67dee73760601871d36fe1dd8",
+        "bytes": 1635
+      },
+      "llm_graph_ir": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/artifacts/apple_demo/llm_graph_ir.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/compiler/llm_graph_ir.json",
+        "sha256": "1f0745c21944eec5e917ad35b95301afd46c545e9af725e64b2523f7ee0ff80a",
+        "bytes": 451
+      },
+      "serving_execution_plan": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/artifacts/apple_demo/serving_execution_plan.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/compiler/serving_execution_plan.json",
+        "sha256": "7d1749ccf927454846e0ce61dae2f85ccebe70dd3835c96e0101ce15b4e92086",
+        "bytes": 1323
+      },
+      "serving_framework_contract": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/artifacts/apple_demo/serving_framework_contract.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/compiler/serving_framework_contract.json",
+        "sha256": "a0ccda1b563b5d5fb07aec49709a43cddc5d90aa83b9170d980ce94ca4338f3c",
+        "bytes": 2595
+      },
+      "kv_cache_plan": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/artifacts/apple_demo/kv_cache_plan.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/compiler/kv_cache_plan.json",
+        "sha256": "76df1f2abafb9c087f4f7fa8e17ec629aaa6446f5fbfaa9fc60f2934d7e15528",
+        "bytes": 1148
+      },
+      "scheduling_plan": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/artifacts/apple_demo/scheduling_plan.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/compiler/scheduling_plan.json",
+        "sha256": "77e8b6f66ecc5e8bd4af89c25905ea682e3e68f72e0dfcf277aa6b15223a4971",
+        "bytes": 783
+      },
+      "memory_plan": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/artifacts/apple_demo/memory_plan.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/compiler/memory_plan.json",
+        "sha256": "ca63ce59205d0f13d81227fb2e63595f3be5100106f9f810161d660775abb336",
+        "bytes": 432
+      },
+      "memory_timeline": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/artifacts/apple_demo/memory_timeline.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/compiler/memory_timeline.json",
+        "sha256": "99a146ff671d170c4ff97ffb8a9362b34a0093d7a4cde2ca3c2f611aa751cf5a",
+        "bytes": 1284
+      },
+      "validation_manifest": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/ml-graph-compiler-runtime/artifacts/apple_demo/validation_manifest.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/compiler/validation_manifest.json",
+        "sha256": "4e6bceaf5f4155d8345fc0a1fdfc66a88d144437f012cf60ddb62d9b966dd087",
+        "bytes": 1410
+      }
+    },
+    "runtime": {
+      "manifest": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/manifest.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/manifest.json",
+        "sha256": "a62c1fcce938e8d6ae937ca846d354220158987fc3ffe4d2c84c0f200ff6deb5",
+        "bytes": 841
+      },
+      "prefill_decode_benchmark": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/prefill_decode_benchmark.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/prefill_decode_benchmark.json",
+        "sha256": "69b6f9a1032df20a12ac92aae5f506f9fb0a0b9bf704457fa9aab363aeaf7408",
+        "bytes": 278
+      },
+      "kv_cache_trace": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/kv_cache_trace.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/kv_cache_trace.json",
+        "sha256": "24f0fb2c6637d197f59040d29f8cc9afdd023953f417db679402dfd69c8293b6",
+        "bytes": 15590
+      },
+      "scheduler_decision_report": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/scheduler_decision_report.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/scheduler_decision_report.json",
+        "sha256": "5d46a5c24bb6cf2caabebde35212b75d347a12cceb46d171b4bf86ccf57ab71b",
+        "bytes": 1757
+      },
+      "scheduler_trace": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/scheduler_trace.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/scheduler_trace.json",
+        "sha256": "738c830937e0028530cacab07101061fc9802f9ca638f00bfc11e20f070d3e2c",
+        "bytes": 3111
+      },
+      "serving_framework_report": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/serving_framework_report.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/serving_framework_report.json",
+        "sha256": "85e1e21ef2f0a063b2dfe31b72c6dfbbbdbd005569937186666692e334072742",
+        "bytes": 5100
+      },
+      "runtime_profile": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/runtime_profile.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/runtime_profile.json",
+        "sha256": "cda922118357c60059f86d513bfbdee06a688e981f570a29f02c120669084961",
+        "bytes": 303
+      },
+      "serving_trace": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/serving_trace.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/serving_trace.json",
+        "sha256": "6da1fc872fed3fbecf96b3babdde2e4c3996ac39b73ba2784e2f8ddcef91d37c",
+        "bytes": 47089
+      },
+      "backend_trace": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/backend_trace.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/backend_trace.json",
+        "sha256": "585c62ed9f140cc403d6f43644858763065b989e4de5725136251946049f2cf4",
+        "bytes": 1413
+      },
+      "plan_benchmark_results": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/plan_benchmark_results.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/plan_benchmark_results.json",
+        "sha256": "c5b61783ee85ed3551c9e6ddfe57d41cb2106bdeb6c74c3cb52ff22bf5c5d51e",
+        "bytes": 1023
+      },
+      "cold_start_report": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/cold_start_report.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/cold_start_report.json",
+        "sha256": "c040f220806d9cef09359129b016452b3048f5189dff5846caf5da26f96f2ecb",
+        "bytes": 3501
+      },
+      "real_llama_profile": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/real_llama_profile.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/real_llama_profile.json",
+        "sha256": "49f7bf368041c3ac526e4c198f4c6bacbfabe4e1ab3a406426a91a007b7a0c8a",
+        "bytes": 22669
+      },
+      "vllm_trace_adapter_report": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/vllm_trace_adapter_report.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/vllm_trace_adapter_report.json",
+        "sha256": "f3ea5844d2f9b5fda6393f5a4b26c4c80c0be624b6fd4235dad4ce1a64164744",
+        "bytes": 3457
+      },
+      "sglang_trace_adapter_report": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/sglang_trace_adapter_report.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/sglang_trace_adapter_report.json",
+        "sha256": "8ced880b55aceb388020c480a8acec98dde8fced6cb6d73b620c509c6f1a7bad",
+        "bytes": 3634
+      },
+      "technology_gate_audit": {
+        "exists": true,
+        "source_path": "/Users/allen/Documents/Codex/project/heterogeneous-inference-runtime/results/llm_runtime_artifacts/technology_gate_audit.json",
+        "artifact_path": "/Users/allen/Documents/Codex/project/PocketChef-AI/llm_artifacts/serving/runtime/technology_gate_audit.json",
+        "sha256": "6ba27de1c38242acb3e284ed0b092c42cd942b7d55617051b41c66aeb4984053",
+        "bytes": 3829
+      }
+    }
+  },
+  "framework_targets": {
+    "vllm": {
+      "enabled_decisions": [
+        "continuous_batching",
+        "prefill_decode_split",
+        "paged_kv_cache_pressure_tracking"
+      ],
+      "runtime_fields": [
+        "scheduler",
+        "decode_step_tokens",
+        "block_size_tokens",
+        "paged_attention_enabled",
+        "block_table_enabled"
+      ]
+    },
+    "sglang": {
+      "enabled_decisions": [
+        "request_queue_decode_scheduling",
+        "prefix_cache_reuse",
+        "structured_serving_trace"
+      ],
+      "runtime_fields": [
+        "queues",
+        "prefix_cache_enabled",
+        "prefix_cache_policy",
+        "eviction_policy"
+      ]
+    },
+    "triton_server": {
+      "enabled_decisions": [
+        "dynamic_batching_comparison",
+        "backend_instance_routing",
+        "per_backend_metrics"
+      ],
+      "runtime_fields": [
+        "max_batch_size",
+        "candidate_execution_plans",
+        "backend_placement",
+        "throughput_tokens_per_s"
+      ]
+    },
+    "tensorrt": {
+      "enabled_decisions": [
+        "engine_candidate_selection",
+        "optimization_profile_shape_metadata",
+        "execution_context_memory_budget"
+      ],
+      "runtime_fields": [
+        "preferred_backend",
+        "memory_budget_mb",
+        "batch_size",
+        "prefill_tokens_per_request",
+        "decode_tokens_per_request"
+      ]
+    }
+  }
+}
