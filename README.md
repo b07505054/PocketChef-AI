@@ -4,6 +4,62 @@ PocketChef-AI is a native iOS food segmentation app and mobile ML compiler/runti
 
 The first screen is the camera. The current debug build captures an iPhone frame, runs YOLO-Seg/Core ML segmentation, draws a filled target mask, reports FPS, p50/p95 latency, active model, and optimization mode, then turns the selected visual target into a local recipe/nutrition snapshot.
 
+## Edge AI Systems Map
+
+PocketChef-AI is the mobile Edge AI demo shell that connects three systems repos into one visible iPhone experience:
+
+```mermaid
+flowchart LR
+    subgraph "PocketChef-AI"
+        A["iPhone camera snapshot"]
+        B["YOLO-Seg / Core ML segmentation"]
+        C["Recipe, nutrition, and local Ollama LLM"]
+        D["Benchmark dashboard"]
+    end
+
+    subgraph "ml-graph-compiler-runtime"
+        E["CV / LLM graph IR"]
+        F["Lowering and optimization passes"]
+        G["Fusion, memory plan, execution plan"]
+    end
+
+    subgraph "heterogeneous-inference-runtime"
+        H["Backend/runtime profiles"]
+        I["Scheduling and dispatch policies"]
+        J["p50/p95, FPS, TTFT, tokens/sec"]
+    end
+
+    subgraph "inference-validation-platform"
+        K["Correctness and SLO validation"]
+        L["Technology gate reports"]
+        M["Benchmark acceptance evidence"]
+    end
+
+    A --> B --> C --> D
+    E --> F --> G --> D
+    H --> I --> J --> D
+    K --> L --> M --> D
+    G -. "Comp mode evidence" .-> B
+    J -. "Run mode evidence" .-> B
+    M -. "claim validation" .-> D
+```
+
+| Repo | Role in PocketChef-AI | Input | Decision | Metric / evidence |
+|---|---|---|---|---|
+| PocketChef-AI | Edge AI app and demo shell | iPhone snapshot, selected food target, typed LLM question | Core ML mode, segmentation postprocess, prompt lowering, local Ollama path | FPS, p50/p95, TTFT, total latency, tokens/sec |
+| ml-graph-compiler-runtime | Compiler evidence provider | CV/LLM graph abstraction | lowering passes, fusion, memory planning, backend placement, execution plan | lowered graph, fusion report, memory savings, cost plan |
+| heterogeneous-inference-runtime | Runtime evidence provider | CV and LLM-shaped workloads | backend policy, scheduling, dispatch, KV/cache serving policy | runtime latency, throughput, p95, FPS, serving metrics |
+| inference-validation-platform | Optional validation layer | runtime/compiler artifacts and benchmark outputs | correctness/SLO/technology gate validation | pass/fail reports and accepted benchmark evidence |
+
+In short:
+
+```text
+PocketChef-AI = iPhone Edge AI demo
+ml-graph-compiler-runtime = compiler decisions behind Comp
+heterogeneous-inference-runtime = runtime decisions behind Run
+inference-validation-platform = validation evidence for claims
+```
+
 Every technical claim in the main plan must answer three questions:
 
 ```text
