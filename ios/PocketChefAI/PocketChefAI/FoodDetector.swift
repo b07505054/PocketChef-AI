@@ -4,10 +4,13 @@ import Foundation
 import Vision
 
 final class FoodDetector {
-    private var legacyRequest: VNCoreMLRequest?
+    private var legacyVisionModel: VNCoreMLModel?
     private(set) var backendName = "No Core ML model loaded"
     private(set) var modelName = "missing_yolo_food_model"
     private(set) var bundleInventory = "Bundle models: scanning..."
+    private(set) var modelArtifactSizeBytes: Int64 = 0
+    private var latestMemoryMetadata: [String: String] = [:]
+    private let maskPostprocessRuntime = MaskPostprocessRuntime()
     private let confidenceThreshold: Float = 0.45
     private let modelInputSize: Double = 640.0
     private let foodClassNames: Set<String> = [
@@ -34,9 +37,9 @@ final class FoodDetector {
     }
 
     func configure(mode: OptimizationMode) {
-        legacyRequest = nil
+        legacyVisionModel = nil
         bundleInventory = makeBundleInventory()
-        legacyRequest = loadLegacyRequest(mode: mode)
+        legacyVisionModel = loadLegacyVisionModel(mode: mode)
     }
 
     func detect(
@@ -64,18 +67,25 @@ final class FoodDetector {
         start: CFAbsoluteTime
     ) -> DetectionFrame {
         var detections: [Detection] = []
+        latestMemoryMetadata = [:]
 
-        if let legacyRequest {
+        if let legacyVisionModel {
             let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: orientation, options: [:])
+            let request = VNCoreMLRequest(model: legacyVisionModel)
+            request.imageCropAndScaleOption = .scaleFill
 
             do {
-                try handler.perform([legacyRequest])
+                try autoreleasepool {
+                    try handler.perform([request])
+                }
                 detections = selectTargetDetection(
-                    from: parseVisionResults(legacyRequest.results, mode: mode),
+                    from: parseVisionResults(request.results, mode: mode),
                     promptPoint: promptPoint,
                     limit: mode.segmenterMaxObjects
                 )
+                request.cancel()
             } catch {
+                request.cancel()
                 backendName = "YOLO-Seg inference failed"
                 modelName = error.localizedDescription
             }
@@ -88,7 +98,11 @@ final class FoodDetector {
             mode: mode,
             backend: backendName,
             modelName: yoloSegModelName(for: mode, promptPoint: promptPoint),
-            timestamp: Date()
+            timestamp: Date(),
+            memoryMetadata: latestMemoryMetadata.merging([
+                "model_file_size_mb": formatMB(modelArtifactSizeBytes),
+                "compute_units": mode.preferredComputeUnits.label
+            ]) { current, _ in current }
         )
     }
 
@@ -108,21 +122,21 @@ final class FoodDetector {
         return String(format: "prompt=(%.3f, %.3f)", point.x, point.y)
     }
 
-    private func loadLegacyRequest(mode: OptimizationMode) -> VNCoreMLRequest? {
+    private func loadLegacyVisionModel(mode: OptimizationMode) -> VNCoreMLModel? {
         var loadErrors: [String] = []
+        modelArtifactSizeBytes = 0
 
         for name in mode.legacyModelCandidates {
             if let url = modelURL(named: name) {
                 do {
+                    modelArtifactSizeBytes = artifactSizeBytes(at: url)
                     let config = MLModelConfiguration()
                     config.computeUnits = mode.preferredComputeUnits
                     let model = try MLModel(contentsOf: url, configuration: config)
                     let visionModel = try VNCoreMLModel(for: model)
-                    let request = VNCoreMLRequest(model: visionModel)
-                    request.imageCropAndScaleOption = .scaleFill
                     backendName = "YOLO-Seg Vision/Core ML (\(mode.preferredComputeUnits.label))"
                     modelName = name
-                    return request
+                    return visionModel
                 } catch {
                     loadErrors.append("\(name): \(error.localizedDescription)")
                     continue
@@ -137,6 +151,38 @@ final class FoodDetector {
             ? "\(mode.legacyModelCandidates.joined(separator: ", ")) not found"
             : loadErrors.joined(separator: " | ")
         return nil
+    }
+
+    private func artifactSizeBytes(at url: URL) -> Int64 {
+        let fileManager = FileManager.default
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory) else {
+            return 0
+        }
+
+        if !isDirectory.boolValue {
+            return ((try? fileManager.attributesOfItem(atPath: url.path)[.size] as? NSNumber)?.int64Value) ?? 0
+        }
+
+        guard let enumerator = fileManager.enumerator(
+            at: url,
+            includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return 0
+        }
+
+        var total: Int64 = 0
+        for case let fileURL as URL in enumerator {
+            guard
+                let values = try? fileURL.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey]),
+                values.isRegularFile == true
+            else {
+                continue
+            }
+            total += Int64(values.fileSize ?? 0)
+        }
+        return total
     }
 
     private func selectTargetDetection(
@@ -373,6 +419,8 @@ final class FoodDetector {
         let channelCount = rawOutput.shape[1].intValue
         let candidateCount = rawOutput.shape[2].intValue
         guard channelCount >= 116 else { return [] }
+        latestMemoryMetadata["mask_proto_size"] = "\(prototypes.shape[3].intValue)x\(prototypes.shape[2].intValue)"
+        latestMemoryMetadata["raw_candidate_count"] = "\(candidateCount)"
 
         var candidates: [SegCandidate] = []
 
@@ -426,7 +474,17 @@ final class FoodDetector {
         }
 
         let kept = applyNMS(to: candidates.sorted { $0.confidence > $1.confidence }, limit: 8)
-        return kept.compactMap { candidate in
+        latestMemoryMetadata["candidate_count_before_nms"] = "\(candidates.count)"
+        latestMemoryMetadata["candidate_count_after_nms"] = "\(kept.count)"
+        var totalFullMaskBytes = 0
+        var totalCropMaskBytes = 0
+        var totalActivePixels = 0
+        var maskDecodeLatencyMs = 0.0
+        var maskBackends: [String: Int] = [:]
+        var maskFallbackReasons: [String: Int] = [:]
+        var simdEligibleCount = 0
+
+        let detections = kept.compactMap { candidate in
             let raster = maskRaster(
                 coefficients: candidate.maskCoefficients,
                 prototypes: prototypes,
@@ -442,6 +500,15 @@ final class FoodDetector {
                 )
             }
 
+            totalFullMaskBytes += raster.maskFullBytes
+            totalCropMaskBytes += raster.mask.alpha.count
+            totalActivePixels += raster.mask.activePixelCount
+            maskDecodeLatencyMs += raster.diagnostics.decodeLatencyMs
+            maskBackends[raster.diagnostics.selectedBackend.rawValue, default: 0] += 1
+            maskFallbackReasons[raster.diagnostics.fallbackReason.rawValue, default: 0] += 1
+            if raster.diagnostics.simdEligible {
+                simdEligibleCount += 1
+            }
             return Detection(
                 label: candidate.label,
                 confidence: candidate.confidence,
@@ -450,6 +517,19 @@ final class FoodDetector {
                 maskAreaRatio: raster.areaRatio
             )
         }
+        latestMemoryMetadata["mask_full_bytes"] = "\(totalFullMaskBytes)"
+        latestMemoryMetadata["mask_crop_bytes"] = "\(totalCropMaskBytes)"
+        latestMemoryMetadata["mask_active_pixels"] = "\(totalActivePixels)"
+        latestMemoryMetadata["mask_rgba_bytes_estimate"] = "\(totalCropMaskBytes * 4)"
+        latestMemoryMetadata["mask_backend"] = maskBackends.sorted { $0.value > $1.value }.first?.key ?? "none"
+        latestMemoryMetadata["mask_backend_counts"] = maskBackends.sorted { $0.key < $1.key }.map { "\($0.key):\($0.value)" }.joined(separator: ",")
+        latestMemoryMetadata["mask_fallback_reason"] = maskFallbackReasons.sorted { $0.value > $1.value }.first?.key ?? "none"
+        latestMemoryMetadata["mask_fallback_counts"] = maskFallbackReasons.sorted { $0.key < $1.key }.map { "\($0.key):\($0.value)" }.joined(separator: ",")
+        latestMemoryMetadata["mask_decode_latency_ms"] = String(format: "%.3f", maskDecodeLatencyMs)
+        latestMemoryMetadata["simd_eligible"] = "\(simdEligibleCount)/\(detections.count)"
+        latestMemoryMetadata["prototype_layout"] = "NCHW"
+        latestMemoryMetadata["mask_correctness_mode"] = mode.prefersSIMDMaskPostprocess ? "simd_candidate_scalar_reference_in_report" : "scalar_reference"
+        return detections
     }
 
     private func maskRaster(
@@ -457,54 +537,12 @@ final class FoodDetector {
         prototypes: MLMultiArray,
         fallbackBox: CGRect,
         mode: OptimizationMode
-    ) -> (boundingBox: CGRect, mask: DetectionMask, areaRatio: CGFloat)? {
-        guard prototypes.shape.count == 4, coefficients.count == 32 else { return nil }
-
-        let maskWidth = prototypes.shape[3].intValue
-        let maskHeight = prototypes.shape[2].intValue
-        guard maskWidth > 2, maskHeight > 2 else { return nil }
-
-        let cropMinX = max(Int(floor(fallbackBox.minX * CGFloat(maskWidth))), 0)
-        let cropMaxX = min(Int(ceil(fallbackBox.maxX * CGFloat(maskWidth))) - 1, maskWidth - 1)
-        let cropMinY = max(Int(floor(fallbackBox.minY * CGFloat(maskHeight))), 0)
-        let cropMaxY = min(Int(ceil(fallbackBox.maxY * CGFloat(maskHeight))) - 1, maskHeight - 1)
-        guard cropMaxX > cropMinX, cropMaxY > cropMinY else { return nil }
-
-        var fullMask = [UInt8](repeating: 0, count: maskWidth * maskHeight)
-        var activeCount = 0
-
-        for y in cropMinY...cropMaxY {
-            for x in cropMinX...cropMaxX {
-                let alpha = maskAlpha(
-                    coefficients: coefficients,
-                    prototypes: prototypes,
-                    x: x,
-                    y: y,
-                    threshold: mode.yoloSegMaskThreshold
-                )
-                guard alpha > 0 else { continue }
-                fullMask[y * maskWidth + x] = alpha
-                activeCount += 1
-            }
-        }
-        let refined = refinedMask(fullMask, width: maskWidth, height: maskHeight)
-        fullMask = refined.mask
-        activeCount = refined.activeCount
-
-        if activeCount == 0 {
-            return fallbackMask(for: fallbackBox, maskWidth: maskWidth, maskHeight: maskHeight)
-        }
-
-        let boxPixelArea = max((cropMaxX - cropMinX + 1) * (cropMaxY - cropMinY + 1), 1)
-        if CGFloat(activeCount) / CGFloat(boxPixelArea) < mode.yoloSegMinActiveRatio {
-            return fallbackMask(for: fallbackBox, maskWidth: maskWidth, maskHeight: maskHeight)
-        }
-
-        return croppedMask(
-            fullMask,
-            maskWidth: maskWidth,
-            maskHeight: maskHeight,
-            cropBox: fallbackBox
+    ) -> MaskPostprocessResult? {
+        maskPostprocessRuntime.decode(
+            coefficients: coefficients,
+            prototypes: prototypes,
+            fallbackBox: fallbackBox,
+            mode: mode
         )
     }
 
@@ -611,7 +649,7 @@ final class FoodDetector {
         for rawBox: CGRect,
         maskWidth: Int,
         maskHeight: Int
-    ) -> (boundingBox: CGRect, mask: DetectionMask, areaRatio: CGFloat)? {
+    ) -> (boundingBox: CGRect, mask: DetectionMask, areaRatio: CGFloat, maskFullBytes: Int)? {
         let minX = max(Int(rawBox.minX * CGFloat(maskWidth)), 0)
         let maxX = min(Int(rawBox.maxX * CGFloat(maskWidth)), maskWidth - 1)
         let minY = max(Int(rawBox.minY * CGFloat(maskHeight)), 0)
@@ -646,7 +684,8 @@ final class FoodDetector {
         return (
             displayBox,
             DetectionMask(width: width, height: height, alpha: alpha),
-            displayBox.width * displayBox.height
+            displayBox.width * displayBox.height,
+            maskWidth * maskHeight
         )
     }
 
@@ -682,6 +721,10 @@ final class FoodDetector {
     private func clamp01(_ value: Double) -> CGFloat {
         CGFloat(min(max(value, 0), 1))
     }
+
+    private func formatMB(_ bytes: Int64) -> String {
+        String(format: "%.3f", Double(bytes) / 1_048_576)
+    }
 }
 
 private struct SegCandidate {
@@ -690,16 +733,4 @@ private struct SegCandidate {
     let boundingBox: CGRect
     let maskBox: CGRect
     let maskCoefficients: [Float]
-}
-
-private extension MLComputeUnits {
-    var label: String {
-        switch self {
-        case .cpuOnly: return "CPU"
-        case .cpuAndGPU: return "CPU+GPU"
-        case .cpuAndNeuralEngine: return "CPU+ANE"
-        case .all: return "CPU+GPU+ANE"
-        @unknown default: return "Core ML"
-        }
-    }
 }

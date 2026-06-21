@@ -97,6 +97,8 @@ enum DetectionMaskImageCache {
         cache.totalCostLimit = 4 * 1024 * 1024
         return cache
     }()
+    nonisolated(unsafe) private static var trackedKeys = Set<String>()
+    nonisolated(unsafe) private static var trackedCost = 0
 
     static func image(forKey key: NSString) -> CGImageBox? {
         cache.object(forKey: key)
@@ -104,10 +106,25 @@ enum DetectionMaskImageCache {
 
     static func insert(_ image: CGImageBox, forKey key: NSString, cost: Int) {
         cache.setObject(image, forKey: key, cost: cost)
+        let stringKey = key as String
+        if !trackedKeys.contains(stringKey) {
+            trackedKeys.insert(stringKey)
+            trackedCost += cost
+        }
     }
 
     static func clear() {
         cache.removeAllObjects()
+        trackedKeys.removeAll()
+        trackedCost = 0
+    }
+
+    static var estimatedCostBytes: Int {
+        trackedCost
+    }
+
+    static var estimatedCount: Int {
+        trackedKeys.count
     }
 }
 

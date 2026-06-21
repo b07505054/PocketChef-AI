@@ -1,0 +1,40 @@
+{
+  "artifact_type": "pocketchef_model_compression_memory_report",
+  "evidence_type": "artifact_backed_file_size",
+  "input_source": "Core ML model artifacts under models/",
+  "decision": "Zip mode chooses quantization/pruning candidates before falling back to FP32.",
+  "metric": "model artifact size and bundle memory pressure proxy",
+  "models": [
+    {
+      "name": "yolo_food_s_seg_fp32",
+      "path": "models/yolo_food_s_seg_fp32.mlmodelc",
+      "size_kib": 23300,
+      "size_mb": 22.754,
+      "role": "baseline YOLO-Seg FP32"
+    },
+    {
+      "name": "yolo_food_s_seg_int8",
+      "path": "models/yolo_food_s_seg_int8.mlmodelc",
+      "size_kib": 23300,
+      "size_mb": 22.754,
+      "role": "Zip quantization candidate placeholder"
+    },
+    {
+      "name": "yolo_food_s_seg_pruned",
+      "path": "models/yolo_food_s_seg_pruned.mlmodelc",
+      "size_kib": 23300,
+      "size_mb": 22.754,
+      "role": "Zip pruning candidate placeholder"
+    }
+  ],
+  "truth_boundary": {
+    "real": [
+      "Model artifact sizes are measured from local files.",
+      "Zip mode searches INT8/pruned candidates before FP32 fallback."
+    ],
+    "not_claimed": [
+      "The current INT8/pruned placeholders do not yet show file-size reduction.",
+      "Loaded model memory reduction is pending iPhone memory report export."
+    ]
+  }
+}

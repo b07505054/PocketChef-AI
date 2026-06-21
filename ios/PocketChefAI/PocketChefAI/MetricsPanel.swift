@@ -47,6 +47,16 @@ struct MetricsPanel: View {
                 .foregroundStyle(.green.opacity(0.9))
                 .lineLimit(1)
 
+            Text(viewModel.memoryDebugSummary)
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(.orange.opacity(0.94))
+                .lineLimit(2)
+
+            Text(viewModel.memoryDetailSummary)
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundStyle(.orange.opacity(0.74))
+                .lineLimit(2)
+
             Text(viewModel.geometryDebugSummary)
                 .font(.system(size: 10, weight: .medium, design: .monospaced))
                 .foregroundStyle(.cyan.opacity(0.78))

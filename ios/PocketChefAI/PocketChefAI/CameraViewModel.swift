@@ -7,6 +7,7 @@ final class CameraViewModel: NSObject, ObservableObject {
     @Published var detections: [Detection] = []
     @Published var optimizationMode: OptimizationMode = .baseline {
         didSet {
+            recordMemoryEvent("before_model_load", metadata: modeSwitchMetadata())
             metrics.reset()
             detections = []
             DetectionMaskImageCache.clear()
@@ -17,6 +18,7 @@ final class CameraViewModel: NSObject, ObservableObject {
             activeModel = detector.modelName
             activePolicySummary = optimizationMode.policySummary
             bundleInventory = detector.bundleInventory
+            recordMemoryEvent("after_model_load", metadata: modeSwitchMetadata())
             if capturedPixelBuffer != nil, let targetPrompt {
                 detectCapturedFrame(at: targetPrompt)
             }
@@ -33,12 +35,15 @@ final class CameraViewModel: NSObject, ObservableObject {
     @Published var capturedImage: UIImage?
     @Published var capturedGeometry: CapturedFrameGeometry?
     @Published var geometryDebugSummary = "Geometry: live preview"
+    @Published var memoryDebugSummary = "Mem: pending"
+    @Published var memoryDetailSummary = "Last jump: pending"
     @Published var isPhotoCaptured = false
 
     let session = AVCaptureSession()
     let metrics = MetricsTracker()
 
     private let detector = FoodDetector(mode: .baseline)
+    private let memoryProfiler = MemoryProfiler()
     private let planner = PocketChefPlanner()
     private let sessionQueue = DispatchQueue(label: "pocketchef.camera.session")
     private let outputQueue = DispatchQueue(label: "pocketchef.camera.frames")
@@ -55,6 +60,7 @@ final class CameraViewModel: NSObject, ObservableObject {
         activeModel = detector.modelName
         activePolicySummary = optimizationMode.policySummary
         bundleInventory = detector.bundleInventory
+        recordMemoryEvent("app_start")
     }
 
     func start() {
@@ -96,12 +102,18 @@ final class CameraViewModel: NSObject, ObservableObject {
     func capturePhoto() {
         outputQueue.async { [weak self] in
             guard let self, let latestPixelBuffer else { return }
+            self.recordMemoryEvent("before_capture", metadata: self.pixelBufferMetadata(latestPixelBuffer))
             guard let frozenBuffer = autoreleasepool(invoking: {
                 self.copyPixelBuffer(latestPixelBuffer)
             }) else { return }
+            self.recordMemoryEvent("after_copy_pixel_buffer", metadata: self.pixelBufferMetadata(frozenBuffer))
             guard let frozenImage = autoreleasepool(invoking: {
                 self.image(from: frozenBuffer)
             }) else { return }
+            self.recordMemoryEvent(
+                "after_make_uiimage",
+                metadata: self.imageMetadata(frozenImage).merging(self.pixelBufferMetadata(frozenBuffer)) { current, _ in current }
+            )
             let geometry = CapturedFrameGeometry(
                 imageSize: frozenImage.size,
                 pixelBufferSize: CGSize(
@@ -128,11 +140,13 @@ final class CameraViewModel: NSObject, ObservableObject {
                 self.activeModel = self.detector.modelName
                 self.activePolicySummary = self.optimizationMode.policySummary
                 self.stop()
+                self.recordMemoryEvent("after_stop_session", metadata: self.captureStateMetadata())
             }
         }
     }
 
     func retakePhoto() {
+        recordMemoryEvent("before_retake_clear", metadata: captureStateMetadata())
         capturedPixelBuffer = nil
         capturedImage = nil
         capturedGeometry = nil
@@ -147,7 +161,16 @@ final class CameraViewModel: NSObject, ObservableObject {
         activeBackend = detector.backendName
         activeModel = detector.modelName
         activePolicySummary = optimizationMode.policySummary
+        recordMemoryEvent("after_retake_clear", metadata: captureStateMetadata())
         configureAndStart()
+    }
+
+    func recordLLMMemoryEvent(_ event: String, metadata: [String: String] = [:]) {
+        recordMemoryEvent(event, metadata: metadata)
+    }
+
+    var memoryReportJSON: String {
+        memoryProfiler.diagnosticJSON
     }
 
     private func detectCapturedFrame(at point: CGPoint) {
@@ -155,9 +178,11 @@ final class CameraViewModel: NSObject, ObservableObject {
         isProcessingFrame = true
         let mode = optimizationMode
         let orientation = capturedGeometry?.visionOrientation ?? .up
+        recordMemoryEvent("before_inference", metadata: pixelBufferMetadata(pixelBuffer).merging(promptMetadata(point)) { current, _ in current })
 
         inferenceQueue.async { [weak self] in
             guard let self else { return }
+            self.recordMemoryEvent("before_mask_decode", metadata: self.pixelBufferMetadata(pixelBuffer))
             let frame = autoreleasepool {
                 self.detector.detect(
                     pixelBuffer: pixelBuffer,
@@ -166,6 +191,11 @@ final class CameraViewModel: NSObject, ObservableObject {
                     promptPoint: point
                 )
             }
+            self.recordMemoryEvent("after_inference", metadata: frame.memoryMetadata)
+            self.recordMemoryEvent(
+                "after_mask_decode",
+                metadata: frame.memoryMetadata.merging(self.detectionMemoryMetadata(frame.detections)) { current, _ in current }
+            )
 
             DispatchQueue.main.async {
                 self.isProcessingFrame = false
@@ -188,6 +218,10 @@ final class CameraViewModel: NSObject, ObservableObject {
                         fps: self.metrics.fps
                     )
                 }
+                self.recordMemoryEvent(
+                    "after_set_detections",
+                    metadata: frame.memoryMetadata.merging(self.detectionMemoryMetadata(self.detections)) { current, _ in current }
+                )
             }
         }
     }
@@ -246,6 +280,7 @@ final class CameraViewModel: NSObject, ObservableObject {
             output.connection(with: .video)?.videoOrientation = .portrait
             self.session.commitConfiguration()
             self.session.startRunning()
+            self.recordMemoryEvent("live_preview_steady")
         }
     }
 
@@ -305,6 +340,105 @@ final class CameraViewModel: NSObject, ObservableObject {
         }
 
         return copy
+    }
+}
+
+private extension CameraViewModel {
+    func recordMemoryEvent(_ event: String, metadata: [String: String] = [:]) {
+        let memoryEvent = memoryProfiler.record(
+            event,
+            mode: optimizationMode,
+            model: detector.modelName,
+            computeUnits: optimizationMode.preferredComputeUnits.label,
+            metadata: metadata
+        )
+
+        guard let memoryEvent else { return }
+        let detail = String(
+            format: "Last %@ | rss %.1f MB | model %.2f MB | cache %.2f MB",
+            memoryEvent.event,
+            memoryEvent.rssMB,
+            Double(detector.modelArtifactSizeBytes) / 1_048_576,
+            Double(DetectionMaskImageCache.estimatedCostBytes) / 1_048_576
+        )
+
+        DispatchQueue.main.async {
+            self.memoryDebugSummary = self.memoryProfiler.compactSummary
+            self.memoryDetailSummary = detail
+        }
+    }
+
+    func modeSwitchMetadata() -> [String: String] {
+        [
+            "model_file_size_mb": String(format: "%.3f", Double(detector.modelArtifactSizeBytes) / 1_048_576),
+            "overlay_cache_cost": "\(DetectionMaskImageCache.estimatedCostBytes)",
+            "overlay_cache_count": "\(DetectionMaskImageCache.estimatedCount)"
+        ]
+    }
+
+    func promptMetadata(_ point: CGPoint) -> [String: String] {
+        [
+            "prompt_x": String(format: "%.3f", point.x),
+            "prompt_y": String(format: "%.3f", point.y)
+        ]
+    }
+
+    func captureStateMetadata() -> [String: String] {
+        var metadata: [String: String] = [
+            "detections_count": "\(detections.count)",
+            "overlay_cache_cost": "\(DetectionMaskImageCache.estimatedCostBytes)",
+            "overlay_cache_count": "\(DetectionMaskImageCache.estimatedCount)",
+            "captured_pixel_buffer_present": capturedPixelBuffer == nil ? "false" : "true",
+            "captured_image_present": capturedImage == nil ? "false" : "true"
+        ]
+
+        if let capturedPixelBuffer {
+            metadata.merge(pixelBufferMetadata(capturedPixelBuffer)) { current, _ in current }
+        }
+        if let capturedImage {
+            metadata.merge(imageMetadata(capturedImage)) { current, _ in current }
+        }
+        metadata.merge(detectionMemoryMetadata(detections)) { current, _ in current }
+        return metadata
+    }
+
+    func pixelBufferMetadata(_ pixelBuffer: CVPixelBuffer) -> [String: String] {
+        let width = CVPixelBufferGetWidth(pixelBuffer)
+        let height = CVPixelBufferGetHeight(pixelBuffer)
+        let rowBytes = CVPixelBufferGetBytesPerRow(pixelBuffer)
+        let estimatedBytes = rowBytes * height
+        return [
+            "captured_pixel_buffer_size": "\(width)x\(height)",
+            "captured_pixel_buffer_bytes": "\(estimatedBytes)",
+            "captured_pixel_buffer_mb": String(format: "%.3f", Double(estimatedBytes) / 1_048_576)
+        ]
+    }
+
+    func imageMetadata(_ image: UIImage) -> [String: String] {
+        let width = Int(image.size.width * image.scale)
+        let height = Int(image.size.height * image.scale)
+        let estimatedBytes = width * height * 4
+        return [
+            "captured_image_pixels": "\(width)x\(height)",
+            "captured_image_estimated_bytes": "\(estimatedBytes)",
+            "captured_image_estimated_mb": String(format: "%.3f", Double(estimatedBytes) / 1_048_576)
+        ]
+    }
+
+    func detectionMemoryMetadata(_ detections: [Detection]) -> [String: String] {
+        let maskAlphaBytes = detections.reduce(0) { total, detection in
+            total + (detection.mask?.alpha.count ?? 0)
+        }
+        let activePixels = detections.reduce(0) { total, detection in
+            total + (detection.mask?.activePixelCount ?? 0)
+        }
+        return [
+            "detections_count": "\(detections.count)",
+            "total_detection_mask_alpha_bytes": "\(maskAlphaBytes)",
+            "total_detection_active_pixels": "\(activePixels)",
+            "overlay_cache_cost": "\(DetectionMaskImageCache.estimatedCostBytes)",
+            "overlay_cache_count": "\(DetectionMaskImageCache.estimatedCount)"
+        ]
     }
 }
 

@@ -155,4 +155,5 @@ struct DetectionFrame: Equatable {
     var backend: String
     var modelName: String
     var timestamp: Date
+    var memoryMetadata: [String: String] = [:]
 }

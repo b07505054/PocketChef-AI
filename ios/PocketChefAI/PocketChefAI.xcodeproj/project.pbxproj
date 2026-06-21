@@ -21,6 +21,8 @@
 		10000000000000000000010E /* PocketChefPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000010 /* PocketChefPlanner.swift */; };
 		100000000000000000000110 /* yolo_food_s_seg_fp32.mlmodelc in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000012 /* yolo_food_s_seg_fp32.mlmodelc */; };
 		100000000000000000000116 /* OllamaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000018 /* OllamaClient.swift */; };
+		100000000000000000000119 /* MemoryProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000019 /* MemoryProfiler.swift */; };
+		10000000000000000000011A /* MaskPostprocessRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001A /* MaskPostprocessRuntime.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +42,8 @@
 		100000000000000000000010 /* PocketChefPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PocketChefPlanner.swift; sourceTree = "<group>"; };
 		100000000000000000000012 /* yolo_food_s_seg_fp32.mlmodelc */ = {isa = PBXFileReference; lastKnownFileType = wrapper.mlmodelc; name = yolo_food_s_seg_fp32.mlmodelc; path = ../../models/yolo_food_s_seg_fp32.mlmodelc; sourceTree = "<group>"; };
 		100000000000000000000018 /* OllamaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaClient.swift; sourceTree = "<group>"; };
+		100000000000000000000019 /* MemoryProfiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryProfiler.swift; sourceTree = "<group>"; };
+		10000000000000000000001A /* MaskPostprocessRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaskPostprocessRuntime.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +82,8 @@
 				10000000000000000000000B /* CameraViewModel.swift */,
 				100000000000000000000010 /* PocketChefPlanner.swift */,
 				100000000000000000000018 /* OllamaClient.swift */,
+				100000000000000000000019 /* MemoryProfiler.swift */,
+				10000000000000000000001A /* MaskPostprocessRuntime.swift */,
 				10000000000000000000000C /* Info.plist */,
 			);
 			path = PocketChefAI;
@@ -174,6 +180,8 @@
 				10000000000000000000010B /* CameraViewModel.swift in Sources */,
 				10000000000000000000010E /* PocketChefPlanner.swift in Sources */,
 				100000000000000000000116 /* OllamaClient.swift in Sources */,
+				100000000000000000000119 /* MemoryProfiler.swift in Sources */,
+				10000000000000000000011A /* MaskPostprocessRuntime.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

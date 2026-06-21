@@ -1,0 +1,254 @@
+{
+  "acceptance_thresholds" : {
+    "bbox_delta_pixels" : 1,
+    "iou_vs_scalar" : 0.995,
+    "max_alpha_abs_diff" : 1
+  },
+  "active_pixel_count_delta" : 0,
+  "artifact_type" : "metal_mask_spmd_benchmark_report",
+  "bbox_delta_pixels" : 0,
+  "benchmark_runtime" : "macos_metal_compute_harness",
+  "cases" : [
+    {
+      "case" : "small_crop_160",
+      "decision" : {
+        "fallback_reason" : "profile_rejected",
+        "metal_legality" : "coefficients=32, NCHW prototype layout, Metal device available",
+        "selected_backend" : "scalar_cpu"
+      },
+      "input" : {
+        "crop" : {
+          "maxX" : 0.48,
+          "maxY" : 0.55,
+          "minX" : 0.2,
+          "minY" : 0.25
+        },
+        "prototype_layout" : "NCHW",
+        "prototype_shape" : [
+          1,
+          32,
+          160,
+          160
+        ],
+        "threshold" : 0.55
+      },
+      "metal_correctness" : {
+        "active_pixel_count_delta" : 0,
+        "bbox_delta_pixels" : 0,
+        "iou_vs_scalar" : 1,
+        "max_alpha_abs_diff" : 0,
+        "mean_alpha_abs_diff" : 0
+      },
+      "metal_spmd" : {
+        "mean_latency_ms" : 0.600658,
+        "p50_latency_ms" : 0.600625,
+        "p95_latency_ms" : 0.687209,
+        "runs" : 30
+      },
+      "metric_impact" : {
+        "estimated_fps_impact" : 0,
+        "p50_latency_ms" : 0.057375,
+        "p95_latency_ms" : 0.061834
+      },
+      "scalar_cpu" : {
+        "mean_latency_ms" : 0.057515,
+        "p50_latency_ms" : 0.057375,
+        "p95_latency_ms" : 0.061834,
+        "runs" : 30
+      },
+      "simd_correctness" : {
+        "active_pixel_count_delta" : 0,
+        "bbox_delta_pixels" : 0,
+        "iou_vs_scalar" : 1,
+        "max_alpha_abs_diff" : 0,
+        "mean_alpha_abs_diff" : 0
+      },
+      "simd_cpu" : {
+        "mean_latency_ms" : 0.05366,
+        "p50_latency_ms" : 0.047208,
+        "p95_latency_ms" : 0.120333,
+        "runs" : 30
+      }
+    },
+    {
+      "case" : "medium_crop_160",
+      "decision" : {
+        "fallback_reason" : "profile_rejected",
+        "metal_legality" : "coefficients=32, NCHW prototype layout, Metal device available",
+        "selected_backend" : "simd_cpu"
+      },
+      "input" : {
+        "crop" : {
+          "maxX" : 0.72,
+          "maxY" : 0.76,
+          "minX" : 0.12,
+          "minY" : 0.18
+        },
+        "prototype_layout" : "NCHW",
+        "prototype_shape" : [
+          1,
+          32,
+          160,
+          160
+        ],
+        "threshold" : 0.55
+      },
+      "metal_correctness" : {
+        "active_pixel_count_delta" : 0,
+        "bbox_delta_pixels" : 0,
+        "iou_vs_scalar" : 1,
+        "max_alpha_abs_diff" : 0,
+        "mean_alpha_abs_diff" : 0
+      },
+      "metal_spmd" : {
+        "mean_latency_ms" : 0.478006,
+        "p50_latency_ms" : 0.467917,
+        "p95_latency_ms" : 0.555875,
+        "runs" : 30
+      },
+      "metric_impact" : {
+        "estimated_fps_impact" : 0.010764,
+        "p50_latency_ms" : 0.22775,
+        "p95_latency_ms" : 0.264208
+      },
+      "scalar_cpu" : {
+        "mean_latency_ms" : 0.249273,
+        "p50_latency_ms" : 0.255333,
+        "p95_latency_ms" : 0.267083,
+        "runs" : 30
+      },
+      "simd_correctness" : {
+        "active_pixel_count_delta" : 0,
+        "bbox_delta_pixels" : 0,
+        "iou_vs_scalar" : 1,
+        "max_alpha_abs_diff" : 0,
+        "mean_alpha_abs_diff" : 0
+      },
+      "simd_cpu" : {
+        "mean_latency_ms" : 0.233686,
+        "p50_latency_ms" : 0.22775,
+        "p95_latency_ms" : 0.264208,
+        "runs" : 30
+      }
+    },
+    {
+      "case" : "edge_crop_160",
+      "decision" : {
+        "fallback_reason" : "profile_rejected",
+        "metal_legality" : "coefficients=32, NCHW prototype layout, Metal device available",
+        "selected_backend" : "simd_cpu"
+      },
+      "input" : {
+        "crop" : {
+          "maxX" : 0.34,
+          "maxY" : 0.44,
+          "minX" : 0,
+          "minY" : 0.02
+        },
+        "prototype_layout" : "NCHW",
+        "prototype_shape" : [
+          1,
+          32,
+          160,
+          160
+        ],
+        "threshold" : 0.55
+      },
+      "metal_correctness" : {
+        "active_pixel_count_delta" : 0,
+        "bbox_delta_pixels" : 0,
+        "iou_vs_scalar" : 1,
+        "max_alpha_abs_diff" : 0,
+        "mean_alpha_abs_diff" : 0
+      },
+      "metal_spmd" : {
+        "mean_latency_ms" : 0.43564,
+        "p50_latency_ms" : 0.425917,
+        "p95_latency_ms" : 0.511459,
+        "runs" : 30
+      },
+      "metric_impact" : {
+        "estimated_fps_impact" : 0.158867,
+        "p50_latency_ms" : 0.081083,
+        "p95_latency_ms" : 0.089791
+      },
+      "scalar_cpu" : {
+        "mean_latency_ms" : 0.097619,
+        "p50_latency_ms" : 0.095541,
+        "p95_latency_ms" : 0.10675,
+        "runs" : 30
+      },
+      "simd_correctness" : {
+        "active_pixel_count_delta" : 0,
+        "bbox_delta_pixels" : 0,
+        "iou_vs_scalar" : 1,
+        "max_alpha_abs_diff" : 0,
+        "mean_alpha_abs_diff" : 0
+      },
+      "simd_cpu" : {
+        "mean_latency_ms" : 0.082808,
+        "p50_latency_ms" : 0.081083,
+        "p95_latency_ms" : 0.089791,
+        "runs" : 30
+      }
+    }
+  ],
+  "correctness" : {
+    "active_pixel_count_delta" : 0,
+    "bbox_delta_pixels" : 0,
+    "iou_vs_scalar" : 1,
+    "max_alpha_abs_diff" : 0,
+    "mean_alpha_abs_diff" : 0
+  },
+  "decision" : {
+    "fallback_reason" : "profile_rejected",
+    "metal_legality" : "coefficients=32, NCHW prototype layout, Metal device available",
+    "selected_backend" : "simd_cpu"
+  },
+  "estimated_fps_impact" : 0.056544,
+  "fallback_reason" : "profile_rejected",
+  "input" : {
+    "coefficients" : "32 mask coefficients",
+    "crop" : "per-case normalized crop box",
+    "model_stage" : "YOLO-Seg mask postprocess",
+    "prototype_layout" : "NCHW",
+    "prototype_shape" : "1x32x160x160 synthetic YOLO-Seg-like tensors",
+    "threshold" : "0.55"
+  },
+  "iou_vs_scalar" : 1,
+  "max_alpha_abs_diff" : 0,
+  "mean_alpha_abs_diff" : 0,
+  "metal_device" : "Apple M5",
+  "metric_impact" : {
+    "estimated_fps_impact" : 0.056544,
+    "p50_latency_ms" : 0.081083,
+    "p95_latency_ms" : 0.264208
+  },
+  "p50_latency_ms" : 0.081083,
+  "p95_latency_ms" : 0.264208,
+  "schema_version" : 1,
+  "selected_backend" : "simd_cpu",
+  "source" : "PocketChef YOLO-Seg mask postprocess Metal SPMD benchmark artifacts",
+  "summary" : {
+    "case_count" : 3,
+    "fallback_reason_counts" : {
+      "profile_rejected" : "3"
+    },
+    "selected_backend_counts" : {
+      "scalar_cpu" : "1",
+      "simd_cpu" : "2"
+    }
+  },
+  "technology_gate" : {
+    "decision" : "profile and correctness policy compares scalar CPU, SIMD CPU, and Metal SPMD candidates",
+    "input" : "YOLO-Seg mask coefficients, NCHW prototype tensor, crop box, and threshold",
+    "metric" : "p50\/p95 mask decode latency, estimated FPS impact, fallback behavior, and mask correctness vs scalar reference",
+    "passes_gate" : true
+  },
+  "truth_boundary" : {
+    "artifact_backed" : "Metal is benchmark-backed for YOLO-Seg mask decode; PocketChef V2 does not yet route live iPhone app mask decode through Metal.",
+    "live_ios_dispatch" : "false",
+    "not_claimed" : "No Qualcomm Ripple, Snapdragon\/QNN\/Hexagon, or live iPhone Metal dispatch is claimed.",
+    "real" : "This report runs a real Metal SPMD compute kernel on the local Metal device."
+  }
+}

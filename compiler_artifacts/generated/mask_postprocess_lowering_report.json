@@ -1,0 +1,186 @@
+{
+  "artifact_type": "mask_postprocess_lowering_report",
+  "schema_version": 1,
+  "benchmark_runtime": "python_semantic_harness",
+  "truth_boundary": {
+    "real": "PocketChef app contains live scalar/SIMD CPU mask postprocess dispatch.",
+    "artifact_backed": "This report validates scalar vs SIMD-style semantics, correctness gates, p50/p95 timings, and policy output on synthetic YOLO-Seg-like tensors.",
+    "not_claimed": "No Qualcomm Ripple, Snapdragon/QNN/Hexagon, live Metal dispatch, or production compiler integration is claimed in V1."
+  },
+  "technology_gate": {
+    "input": "YOLO-Seg mask coefficients, NCHW prototype tensor, crop box, and threshold",
+    "decision": "legality and profile policy select scalar CPU or SIMD CPU mask postprocess",
+    "metric": "p50/p95 mask decode latency, estimated FPS impact, fallback behavior, and mask correctness vs scalar reference",
+    "passes_gate": true
+  },
+  "acceptance_thresholds": {
+    "max_alpha_abs_diff": 1,
+    "iou_vs_scalar": 0.995,
+    "bbox_delta_pixels": 1
+  },
+  "summary": {
+    "case_count": 3,
+    "selected_backend_counts": {
+      "scalar_cpu": 3
+    },
+    "fallback_reason_counts": {
+      "profile_rejected": 3
+    }
+  },
+  "selected_backend": "scalar_cpu",
+  "fallback_reason": "profile_rejected",
+  "p50_latency_ms": 5.484666,
+  "p95_latency_ms": 14.268292,
+  "estimated_fps_impact": -0.737822,
+  "max_alpha_abs_diff": 0,
+  "mean_alpha_abs_diff": 0.0,
+  "active_pixel_count_delta": 0,
+  "iou_vs_scalar": 1.0,
+  "bbox_delta_pixels": 0,
+  "cases": [
+    {
+      "case": "small_crop_160",
+      "input": {
+        "prototype_layout": "NCHW",
+        "prototype_shape": [
+          1,
+          32,
+          160,
+          160
+        ],
+        "crop": {
+          "min_x": 0.2,
+          "max_x": 0.48,
+          "min_y": 0.25,
+          "max_y": 0.55
+        },
+        "threshold": 0.55
+      },
+      "decision": {
+        "selected_backend": "scalar_cpu",
+        "fallback_reason": "profile_rejected",
+        "simd_legality": "coefficients=32 and NCHW prototype layout"
+      },
+      "scalar_cpu": {
+        "runs": 15,
+        "p50_latency_ms": 3.033166,
+        "p95_latency_ms": 3.413583,
+        "mean_latency_ms": 3.115444
+      },
+      "simd_cpu": {
+        "runs": 15,
+        "p50_latency_ms": 5.4335,
+        "p95_latency_ms": 5.656,
+        "mean_latency_ms": 5.451711
+      },
+      "correctness": {
+        "max_alpha_abs_diff": 0,
+        "mean_alpha_abs_diff": 0.0,
+        "active_pixel_count_delta": 0,
+        "iou_vs_scalar": 1.0,
+        "bbox_delta_pixels": 0
+      },
+      "metric_impact": {
+        "p50_latency_ms": 3.033166,
+        "p95_latency_ms": 3.413583,
+        "estimated_fps_impact": -0.65691
+      }
+    },
+    {
+      "case": "medium_crop_160",
+      "input": {
+        "prototype_layout": "NCHW",
+        "prototype_shape": [
+          1,
+          32,
+          160,
+          160
+        ],
+        "crop": {
+          "min_x": 0.12,
+          "max_x": 0.72,
+          "min_y": 0.18,
+          "max_y": 0.76
+        },
+        "threshold": 0.55
+      },
+      "decision": {
+        "selected_backend": "scalar_cpu",
+        "fallback_reason": "profile_rejected",
+        "simd_legality": "coefficients=32 and NCHW prototype layout"
+      },
+      "scalar_cpu": {
+        "runs": 15,
+        "p50_latency_ms": 12.652,
+        "p95_latency_ms": 14.268292,
+        "mean_latency_ms": 12.764942
+      },
+      "simd_cpu": {
+        "runs": 15,
+        "p50_latency_ms": 23.116625,
+        "p95_latency_ms": 24.752291,
+        "mean_latency_ms": 23.246036
+      },
+      "correctness": {
+        "max_alpha_abs_diff": 0,
+        "mean_alpha_abs_diff": 0.0,
+        "active_pixel_count_delta": 0,
+        "iou_vs_scalar": 1.0,
+        "bbox_delta_pixels": 0
+      },
+      "metric_impact": {
+        "p50_latency_ms": 12.652,
+        "p95_latency_ms": 14.268292,
+        "estimated_fps_impact": -0.734776
+      }
+    },
+    {
+      "case": "edge_crop_160",
+      "input": {
+        "prototype_layout": "NCHW",
+        "prototype_shape": [
+          1,
+          32,
+          160,
+          160
+        ],
+        "crop": {
+          "min_x": 0.0,
+          "max_x": 0.34,
+          "min_y": 0.02,
+          "max_y": 0.44
+        },
+        "threshold": 0.55
+      },
+      "decision": {
+        "selected_backend": "scalar_cpu",
+        "fallback_reason": "profile_rejected",
+        "simd_legality": "coefficients=32 and NCHW prototype layout"
+      },
+      "scalar_cpu": {
+        "runs": 15,
+        "p50_latency_ms": 5.484666,
+        "p95_latency_ms": 7.255542,
+        "mean_latency_ms": 5.687061
+      },
+      "simd_cpu": {
+        "runs": 15,
+        "p50_latency_ms": 10.014417,
+        "p95_latency_ms": 13.218,
+        "mean_latency_ms": 10.7311
+      },
+      "correctness": {
+        "max_alpha_abs_diff": 0,
+        "mean_alpha_abs_diff": 0.0,
+        "active_pixel_count_delta": 0,
+        "iou_vs_scalar": 1.0,
+        "bbox_delta_pixels": 0
+      },
+      "metric_impact": {
+        "p50_latency_ms": 5.484666,
+        "p95_latency_ms": 7.255542,
+        "estimated_fps_impact": -0.82178
+      }
+    }
+  ]
+}

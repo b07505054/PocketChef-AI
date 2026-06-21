@@ -272,6 +272,9 @@ struct ResultSheet: View {
                         ], tint: .green)
 
                         Button {
+                            viewModel.recordLLMMemoryEvent("after_llm_copy_json", metadata: [
+                                "llm_benchmark_json_bytes": "\(metrics.benchmarkJSON.utf8.count)"
+                            ])
                             UIPasteboard.general.string = metrics.benchmarkJSON
                         } label: {
                             Label("Copy benchmark JSON", systemImage: "doc.on.doc.fill")
@@ -430,6 +433,8 @@ struct ResultSheet: View {
             row("FPS", String(format: "%.1f", viewModel.metrics.fps))
             row("p50 latency", String(format: "%.1f ms", viewModel.metrics.p50LatencyMs))
             row("p95 latency", String(format: "%.1f ms", viewModel.metrics.p95LatencyMs))
+            row("Memory", viewModel.memoryDebugSummary)
+            row("Memory detail", viewModel.memoryDetailSummary)
             row("VI planner", recipe.llmRuntimeNote)
             row("LLM mode", llmMetrics?.mode.title ?? llmMode.title)
             row("LLM decision", llmMetrics?.decisionSummary ?? llmMode.decisionSummary)
@@ -439,6 +444,14 @@ struct ResultSheet: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.white.opacity(0.55))
                 .padding(.top, 4)
+
+            Button {
+                UIPasteboard.general.string = viewModel.memoryReportJSON
+            } label: {
+                Label("Copy iPhone memory JSON", systemImage: "memorychip.fill")
+                    .font(.caption.weight(.black))
+                    .foregroundStyle(.white.opacity(0.86))
+            }
         }
         .cardStyle()
     }
@@ -529,10 +542,18 @@ struct ResultSheet: View {
         llmError = nil
         llmAnswer = ""
         llmMetrics = nil
+        viewModel.recordLLMMemoryEvent("before_llm_ask", metadata: [
+            "llm_question_chars": "\(question.count)",
+            "llm_mode": llmMode.rawValue
+        ])
 
         if isLikelyDeviceLocalhost(ollamaHost) {
             llmError = "On a real iPhone, 127.0.0.1 means the iPhone itself. Use your Mac LAN IP, for example http://192.168.1.2:11434, and make sure ollama serve is running."
             isAskingLLM = false
+            viewModel.recordLLMMemoryEvent("after_llm_stream_finish", metadata: [
+                "llm_error": "device_localhost",
+                "llm_response_chars": "0"
+            ])
             return
         }
 
@@ -544,11 +565,21 @@ struct ResultSheet: View {
                     llmAnswer = response.answer
                     llmMetrics = response.metrics
                     isAskingLLM = false
+                    viewModel.recordLLMMemoryEvent("after_llm_stream_finish", metadata: [
+                        "llm_response_chars": "\(response.answer.count)",
+                        "llm_benchmark_json_bytes": "\(response.metrics.benchmarkJSON.utf8.count)",
+                        "llm_mode": response.metrics.mode.rawValue,
+                        "llm_completion_tokens": "\(response.metrics.completionTokens)"
+                    ])
                 }
             } catch {
                 await MainActor.run {
                     llmError = error.localizedDescription
                     isAskingLLM = false
+                    viewModel.recordLLMMemoryEvent("after_llm_stream_finish", metadata: [
+                        "llm_error": error.localizedDescription,
+                        "llm_response_chars": "0"
+                    ])
                 }
             }
         }

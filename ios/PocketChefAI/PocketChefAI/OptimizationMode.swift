@@ -100,11 +100,20 @@ enum OptimizationMode: String, CaseIterable, Identifiable {
         case .runtime:
             return "same postprocess as baseline; runtime policy changes compute scheduling"
         case .compiler:
-            return "compiler-lowered bbox crop + thresholded mask decode"
+            return "compiler-lowered scalar/SIMD mask decode"
         case .compression:
             return "quantization/pruning candidate + stricter mask decode"
         case .combined:
-            return "compiler-lowered postprocess + runtime compute scheduling"
+            return "compiler-lowered scalar/SIMD postprocess + runtime compute scheduling"
+        }
+    }
+
+    var prefersSIMDMaskPostprocess: Bool {
+        switch self {
+        case .compiler, .combined:
+            return true
+        case .baseline, .runtime, .compression:
+            return false
         }
     }
 
@@ -115,11 +124,11 @@ enum OptimizationMode: String, CaseIterable, Identifiable {
         case .runtime:
             return "Run policy: computeUnits=.all from runtime evidence | metric=p50/p95/FPS delta"
         case .compiler:
-            return "Comp policy: bbox-cropped mask decode, threshold 0.50 | artifact=cv_cost_based_planner"
+            return "Comp policy: scalar/SIMD mask decode lowering | artifact=mask_postprocess_lowering_report"
         case .compression:
             return "Zip policy: quantization/pruning candidates | metric=size/latency/mask stability"
         case .combined:
-            return "All policy: runtime computeUnits=.all + compiler-lowered postprocess"
+            return "All policy: runtime computeUnits=.all + compiler-lowered scalar/SIMD postprocess"
         }
     }
 
@@ -154,6 +163,18 @@ enum OptimizationMode: String, CaseIterable, Identifiable {
         case .compiler: return "Comp"
         case .compression: return "Zip"
         case .combined: return "All"
+        }
+    }
+}
+
+extension MLComputeUnits {
+    var label: String {
+        switch self {
+        case .cpuOnly: return "CPU"
+        case .cpuAndGPU: return "CPU+GPU"
+        case .cpuAndNeuralEngine: return "CPU+ANE"
+        case .all: return "CPU+GPU+ANE"
+        @unknown default: return "Core ML"
         }
     }
 }

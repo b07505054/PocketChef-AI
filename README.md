@@ -78,6 +78,52 @@ iPhone Camera
 -> Artifact-gated benchmark dashboard
 ```
 
+## Memory Evidence Map
+
+PocketChef treats memory as a first-class compiler/runtime metric. The app now records real device memory events, while README headline claims remain gated by artifacts.
+
+| Area | Evidence type | Input | Decision | Memory metric |
+|---|---|---|---|---|
+| Compiler Memory | artifact-backed estimate | YOLO-Seg graph abstraction | `MemoryPlanningPass` + tensor lifetime reuse | activation peak estimate `19.529 MB -> 14.798 MB` |
+| Runtime Memory | instrumented, real iPhone export pending | same iPhone snapshot + same model | Core ML compute units, camera/session/cache policy | `physical_footprint_mb`, RSS, event deltas |
+| Compression Memory | artifact-backed file size | FP32 / INT8 / pruned Core ML artifacts | Zip mode model choice | model size now; loaded memory pending iPhone export |
+| LLM Serving Memory | artifact-backed runtime profile | local LLM request stream + serving workload artifacts | KV cache allocation + memory-pressure scheduling | peak KV `868.75 MB`, peak memory `1636.75 MB`, OOM `0` |
+
+Current compiler memory evidence:
+
+```text
+Naive activation memory:    19.529 MB
+Planned peak activation:    14.798 MB
+Saved activation memory:     4.731 MB
+```
+
+Current runtime memory truth boundary:
+
+```text
+Implemented: iPhone in-app memory sampler and event report copy flow.
+Pending: real iPhone `runtime_artifacts/iphone_memory_report.json` export with measured peak memory.
+```
+
+Memory artifacts:
+
+```text
+compiler_artifacts/generated/cv_memory_timeline.json
+compiler_artifacts/generated/cv_memory_summary.md
+runtime_artifacts/iphone_memory_report.json
+compression_artifacts/model_size_report.json
+benchmark_reports/memory_evidence_summary.json
+```
+
+Crash diagnosis events recorded by the app:
+
+```text
+app_start -> live_preview_steady -> before_capture -> after_copy_pixel_buffer
+-> after_make_uiimage -> after_stop_session -> before_model_load -> after_model_load
+-> before_inference -> before_mask_decode -> after_inference -> after_mask_decode
+-> after_set_detections -> before_retake_clear -> after_retake_clear
+-> before_llm_ask -> after_llm_stream_finish -> after_llm_copy_json
+```
+
 ## Compiler Pipeline Integration
 
 PocketChef now has a Level 2.5 compiler integration:
@@ -110,6 +156,8 @@ compiler_artifacts/generated/cv_static_schedule.json
 compiler_artifacts/generated/cv_subgraph_partition.json
 compiler_artifacts/generated/cv_cost_report.json
 compiler_artifacts/generated/cv_cost_based_planner.json
+compiler_artifacts/generated/mask_postprocess_lowering_report.json
+compiler_artifacts/generated/metal_mask_spmd_benchmark_report.json
 ```
 
 Truth boundary:
@@ -117,6 +165,79 @@ Truth boundary:
 ```text
 Real: PocketChef invokes the external compiler repo on Mac and imports generated lowering/pass/optimization artifacts.
 Not claimed: the iPhone app live-compiles the YOLO-Seg Core ML graph at runtime.
+```
+
+## SIMD Mask Postprocess Lowering
+
+PocketChef V1 includes a live CPU scalar/SIMD mask postprocess lowering path for
+YOLO-Seg mask decode. The input is the real app-side mask contract:
+
+```text
+YOLO-Seg mask coefficients + NCHW prototype tensor + crop box + threshold
+  -> legality checks
+  -> scalar CPU reference or SIMD CPU candidate
+  -> runtime fallback reason and mask decode latency metadata
+```
+
+Run the evidence generator:
+
+```bash
+python3 scripts/generate_mask_postprocess_evidence.py
+```
+
+Generated evidence:
+
+```text
+compiler_artifacts/generated/mask_postprocess_lowering_report.json
+```
+
+Truth boundary:
+
+```text
+Real: live scalar/SIMD CPU mask postprocess dispatch exists in the PocketChef app.
+Artifact-backed: synthetic YOLO-Seg-like benchmark report with p50/p95 latency,
+fallback behavior, FPS-impact estimate, and correctness metrics.
+Not claimed: Qualcomm Ripple, Snapdragon/QNN/Hexagon, live Metal dispatch, or
+full compiler integration.
+```
+
+## Metal SPMD Mask Benchmark
+
+PocketChef V2 adds a benchmark-backed Metal SPMD compute candidate for the same
+YOLO-Seg mask decode contract. This keeps live app dispatch conservative while
+still measuring the GPU lowering candidate against the scalar reference and SIMD
+CPU path.
+
+```text
+YOLO-Seg mask coefficients + NCHW prototype tensor + crop box + threshold
+  -> scalar CPU reference
+  -> SIMD CPU candidate
+  -> Metal one-thread-per-pixel SPMD candidate
+  -> profile-selected backend with correctness evidence
+```
+
+Run the benchmark:
+
+```bash
+python3 scripts/generate_metal_mask_spmd_benchmark.py
+```
+
+Generated evidence:
+
+```text
+metal/mask_postprocess.metal
+compiler_artifacts/generated/metal_mask_spmd_benchmark_report.json
+```
+
+Truth boundary:
+
+```text
+Real: the report compiles and runs a Metal compute kernel on the local Mac GPU,
+then compares CPU scalar, CPU SIMD, and Metal SPMD candidates.
+Artifact-backed: p50/p95 latency, FPS-impact estimate, profile rejection/selection,
+and scalar-reference correctness metrics.
+Not claimed: live iPhone Metal dispatch, Qualcomm Ripple, Snapdragon/QNN/Hexagon,
+or production compiler-manifest integration.
 ```
 
 ## What This Repo Shows
@@ -473,6 +594,21 @@ Model size reduction:   measured from model artifacts
 FPS improvement:        measured from app/runtime benchmark
 Memory reduction:       Instruments or exported app metrics
 ```
+
+## Handoff Documentation
+
+For Codex-to-Claude Code handoff, start with:
+
+- `CLAUDE.md`
+- `docs/architecture.md`
+- `docs/data_flow.md`
+- `docs/design_decisions.md`
+- `docs/technical_debt.md`
+- `docs/future_work.md`
+
+These files document the iOS app, dashboard, compiler/runtime artifact bridge,
+implemented behavior, artifact-backed behavior, assumptions, and realistic next
+steps.
 
 ## Current Status
 

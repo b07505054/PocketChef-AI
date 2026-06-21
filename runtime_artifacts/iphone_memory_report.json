@@ -1,0 +1,79 @@
+{
+  "artifact_type": "pocketchef_iphone_memory_report_schema",
+  "status": "pending_real_iphone_export",
+  "primary_metric": "physical_footprint_mb",
+  "secondary_metric": "rss_mb",
+  "truth_boundary": {
+    "real": [
+      "PocketChef app now records memory events in-process on iPhone/simulator.",
+      "The Snapshot benchmark sheet can copy a single-run JSON report from the app."
+    ],
+    "not_claimed": [
+      "This file is not a measured iPhone run yet.",
+      "Runtime memory headline numbers must be copied from a real device run before being claimed."
+    ]
+  },
+  "events_to_record": [
+    "app_start",
+    "live_preview_steady",
+    "before_capture",
+    "after_copy_pixel_buffer",
+    "after_make_uiimage",
+    "after_stop_session",
+    "before_model_load",
+    "after_model_load",
+    "before_inference",
+    "before_mask_decode",
+    "after_inference",
+    "after_mask_decode",
+    "after_set_detections",
+    "before_retake_clear",
+    "after_retake_clear",
+    "before_llm_ask",
+    "after_llm_stream_finish",
+    "after_llm_copy_json"
+  ],
+  "sample_event_shape": {
+    "event": "after_mask_decode",
+    "mode": "Combined",
+    "rss_mb": 512.4,
+    "physical_footprint_mb": 610.2,
+    "peak_physical_footprint_mb": 610.2,
+    "delta_from_previous_mb": 84.7,
+    "model": "yolo_food_s_seg_fp32",
+    "compute_units": "CPU+GPU+ANE",
+    "metadata": {
+      "captured_pixel_buffer_mb": "3.516",
+      "captured_image_estimated_mb": "3.516",
+      "mask_proto_size": "160x160",
+      "candidate_count_before_nms": "8",
+      "candidate_count_after_nms": "1",
+      "mask_full_bytes": "25600",
+      "mask_crop_bytes": "18000",
+      "mask_rgba_bytes_estimate": "72000",
+      "overlay_cache_cost": "72000"
+    }
+  },
+  "diagnosis_rules": [
+    {
+      "symptom": "after_make_uiimage has the largest positive delta",
+      "likely_cause": "captured UIImage/CGImage/CIContext allocation"
+    },
+    {
+      "symptom": "after_model_load grows every mode switch",
+      "likely_cause": "VNCoreMLRequest/MLModel/ANE compile cache retention"
+    },
+    {
+      "symptom": "after_mask_decode has the largest positive delta",
+      "likely_cause": "YOLO-Seg fullMask/refined/cropped mask allocation"
+    },
+    {
+      "symptom": "after_set_detections or later SwiftUI render grows",
+      "likely_cause": "RGBA overlay/Data/CGImage/cache retention"
+    },
+    {
+      "symptom": "after_retake_clear does not drop or keeps increasing across retakes",
+      "likely_cause": "captured frame, detections, mask cache, or UI state not released"
+    }
+  ]
+}

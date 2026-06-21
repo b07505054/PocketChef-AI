@@ -1,0 +1,40 @@
+{
+  "artifact_type": "pocketchef_memory_evidence_summary",
+  "schema_version": 1,
+  "generated_at": "2026-06-07",
+  "summary": [
+    {
+      "area": "Compiler Memory",
+      "evidence_type": "artifact_backed_estimate",
+      "input_source": "YOLO-Seg graph abstraction",
+      "decision": "MemoryPlanningPass + tensor lifetime activation reuse",
+      "metric": "activation peak estimate 19.529 MB -> 14.798 MB",
+      "source_artifact": "compiler_artifacts/generated/cv_memory_timeline.json"
+    },
+    {
+      "area": "Runtime Memory",
+      "evidence_type": "app_instrumentation_pending_real_device_export",
+      "input_source": "same iPhone snapshot + same model",
+      "decision": "Core ML computeUnits, camera/session/cache policy, mode switch policy",
+      "metric": "physical_footprint_mb / rss_mb / event deltas",
+      "source_artifact": "runtime_artifacts/iphone_memory_report.json"
+    },
+    {
+      "area": "Compression Memory",
+      "evidence_type": "artifact_backed_file_size",
+      "input_source": "FP32, INT8, pruned Core ML model artifacts",
+      "decision": "Zip quantization/pruning candidate choice",
+      "metric": "model artifact size; loaded memory pending iPhone export",
+      "source_artifact": "compression_artifacts/model_size_report.json"
+    },
+    {
+      "area": "LLM Serving Memory",
+      "evidence_type": "artifact_backed_runtime_profile",
+      "input_source": "local LLM request stream and imported serving workload artifacts",
+      "decision": "KV cache allocation + memory-pressure scheduling",
+      "metric": "peak KV cache 868.75 MB, peak memory 1636.75 MB, OOM events 0",
+      "source_artifact": "llm_artifacts/serving/llm_serving_evidence.json"
+    }
+  ],
+  "headline_rule": "Runtime memory headline numbers must come from a copied real iPhone memory report, not this pending schema file."
+}

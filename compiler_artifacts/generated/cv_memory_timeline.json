@@ -1,0 +1,50 @@
+{
+  "artifact_type": "pocketchef_cv_compiler_memory_timeline",
+  "source_repo": "ml-graph-compiler-runtime",
+  "source_artifact": "compiler_artifacts/generated/cv_memory_plan.json",
+  "evidence_type": "artifact_backed_estimate",
+  "input_source": "YOLO-Seg CV graph abstraction",
+  "compiler_decision": "MemoryPlanningPass assigns non-overlapping tensor lifetimes to shared activation buffers.",
+  "metric": {
+    "naive_activation_mb": 19.529,
+    "planned_peak_activation_mb": 14.798,
+    "saved_activation_mb": 4.731,
+    "saved_activation_percent": 24.22
+  },
+  "timeline": [
+    {
+      "stage": "conv",
+      "tensor": "conv_out",
+      "memory_offset": 150976,
+      "action": "allocate primary activation buffer"
+    },
+    {
+      "stage": "activation",
+      "tensor": "relu_out",
+      "memory_offset": 150976,
+      "action": "reuse conv_out buffer after lifetime ends"
+    },
+    {
+      "stage": "pool",
+      "tensor": "pool_out",
+      "memory_offset": 150976,
+      "action": "reuse same activation buffer"
+    },
+    {
+      "stage": "flatten",
+      "tensor": "flat_out",
+      "memory_offset": 150976,
+      "action": "reuse same activation buffer"
+    },
+    {
+      "stage": "logits",
+      "tensor": "logits",
+      "memory_offset": 150976,
+      "action": "reuse same activation buffer"
+    }
+  ],
+  "truth_boundary": {
+    "real": "PocketChef imports the generated compiler memory plan from the external compiler pipeline.",
+    "not_claimed": "The iPhone app does not live-compile YOLO-Seg at runtime."
+  }
+}
