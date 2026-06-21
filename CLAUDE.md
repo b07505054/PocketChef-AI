@@ -96,3 +96,12 @@ A valid benchmark claim should include:
 - Whether the number is measured or estimated.
 
 When in doubt, write "pending measurement" instead of filling in a number.
+
+## Validation
+
+Current validation is a Python syntax check only:
+
+- `scripts/check.sh` runs `python3 -m py_compile` over `dashboard/server.py` and `scripts/*.py`.
+- `.github/workflows/python-validate.yml` runs `scripts/check.sh` on push and pull request using Python 3.11.
+
+There is no automated test suite yet (Swift or Python). See `docs/test_plan.md` for the future test plan; it is documentation only and not implemented.
