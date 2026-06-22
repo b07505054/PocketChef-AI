@@ -101,7 +101,7 @@ When in doubt, write "pending measurement" instead of filling in a number.
 
 Current validation is a Python syntax check only:
 
-- `scripts/check.sh` runs `python3 -m py_compile` over `dashboard/server.py` and `scripts/*.py`.
-- `.github/workflows/python-validate.yml` runs `scripts/check.sh` on push and pull request using Python 3.11.
+- `scripts/check.sh` runs `.venv/bin/python -m py_compile` over `dashboard/server.py` and `scripts/*.py`. It requires a project-local `.venv` and has no system Python fallback; if `.venv/bin/python` is missing it errors out instead of falling back.
+- `.github/workflows/python-validate.yml` runs on push and pull request using Python 3.11: it creates `.venv`, installs `requirements.txt` if one exists in the repo (skipping cleanly if not), then runs `scripts/check.sh`. No packages are installed automatically outside CI, and `requirements.txt` does not exist yet.
 
 There is no automated test suite yet (Swift or Python). See `docs/test_plan.md` for the future test plan; it is documentation only and not implemented.

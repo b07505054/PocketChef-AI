@@ -595,6 +595,21 @@ FPS improvement:        measured from app/runtime benchmark
 Memory reduction:       Instruments or exported app metrics
 ```
 
+## Validation
+
+Local Python validation requires a project-local virtual environment at `.venv`:
+
+```bash
+python3.11 -m venv .venv
+bash scripts/check.sh
+```
+
+`scripts/check.sh` runs `.venv/bin/python -m py_compile` over `dashboard/server.py` and `scripts/*.py`. It does not fall back to a system Python; if `.venv/bin/python` is missing it exits with an error telling you to create the venv.
+
+CI (`.github/workflows/python-validate.yml`) creates `.venv` itself with Python 3.11, installs `requirements.txt` if one exists in the repo (otherwise skips the install step cleanly), then runs `scripts/check.sh`. There is no `requirements.txt` yet and none is added as a placeholder.
+
+This is a syntax check only; there is no automated test suite (Swift or Python) yet. See `docs/test_plan.md` for the documentation-only future test plan.
+
 ## Handoff Documentation
 
 For Codex-to-Claude Code handoff, start with:

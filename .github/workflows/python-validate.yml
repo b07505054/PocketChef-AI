@@ -12,4 +12,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Create venv
+        run: python3 -m venv .venv
+      - name: Install requirements (if present)
+        run: |
+          if [ -f requirements.txt ]; then
+            .venv/bin/python -m pip install -r requirements.txt
+          else
+            echo "No requirements.txt found, skipping install."
+          fi
       - run: bash scripts/check.sh
