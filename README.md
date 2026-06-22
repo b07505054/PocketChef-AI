@@ -610,11 +610,10 @@ CI (`.github/workflows/python-validate.yml`) creates `.venv` itself with Python 
 
 This is a syntax check only; there is no automated test suite (Swift or Python) yet. See `docs/test_plan.md` for the documentation-only future test plan.
 
-## Handoff Documentation
+## Documentation
 
-For Codex-to-Claude Code handoff, start with:
+For deeper project notes, start with:
 
-- `CLAUDE.md`
 - `docs/architecture.md`
 - `docs/data_flow.md`
 - `docs/design_decisions.md`
