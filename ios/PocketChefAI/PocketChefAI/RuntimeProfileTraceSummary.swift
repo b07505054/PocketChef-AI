@@ -5,9 +5,10 @@ import Foundation
 // Decoded from Resources/runtime_profile_trace.json.
 // Source: heterogeneous-inference-runtime RuntimeProfileTrace schema v1.
 //
-// Full events arrays are NOT decoded here — they are large and not needed
-// until a PlaybackEngine is implemented. Only top-level provenance fields
-// and per-variant summaries are decoded.
+// Full variant data (events + timeseries) is decoded and available via
+// baselineVariant / optimizedVariant for use by RuntimePlaybackEngine.
+// The summary fields (baselineSummary, optimizedSummary) remain for lightweight
+// display without accessing the full event arrays.
 //
 // Truth boundary: offline_runtime_simulation_not_iphone_execution.
 // When compilerPlanSource == "built_in_fixture", doNotUseForDemo is true
@@ -27,6 +28,9 @@ struct RuntimeProfileTraceSummary: Codable, Equatable {
     let baselineSummary: TraceVariantSummary
     let optimizedSummary: TraceVariantSummary
     let comparisonHeadline: String
+    // Full variants — decoded from events/timeseries arrays.
+    let baselineVariant: RuntimeTraceVariant
+    let optimizedVariant: RuntimeTraceVariant
 
     var isCompilerArtifact: Bool {
         compilerPlanSource == "compiler_artifact"
@@ -46,7 +50,9 @@ struct RuntimeProfileTraceSummary: Codable, Equatable {
             provenanceNotes: [],
             baselineSummary: .previewBaseline,
             optimizedSummary: .previewOptimized,
-            comparisonHeadline: "Compiler-guided runtime reduces p95 latency by 81.2%"
+            comparisonHeadline: "Compiler-guided runtime reduces p95 latency by 81.2%",
+            baselineVariant: .previewBaseline,
+            optimizedVariant: .previewOptimized
         )
     }
 
@@ -64,7 +70,72 @@ struct RuntimeProfileTraceSummary: Codable, Equatable {
             provenanceNotes: ["compiler_not_in_pipeline"],
             baselineSummary: .previewBaseline,
             optimizedSummary: .previewOptimized,
-            comparisonHeadline: "[FIXTURE] Compiler artifact missing. Compiler-guided runtime reduces p95 latency by 81.2%"
+            comparisonHeadline: "[FIXTURE] Compiler artifact missing. Compiler-guided runtime reduces p95 latency by 81.2%",
+            baselineVariant: .previewBaseline,
+            optimizedVariant: .previewOptimized
+        )
+    }
+}
+
+// MARK: - RuntimeTraceEvent
+
+struct RuntimeTraceEvent: Codable, Equatable {
+    let tsMs: Double          // start_ms from wire
+    let durMs: Double         // duration_ms from wire
+    let category: String
+    let name: String
+    let lane: String
+    let requestId: String
+    let metadata: [String: String]
+    let truthBoundary: String
+
+    var endMs: Double { tsMs + durMs }
+}
+
+// MARK: - RuntimeTraceTimeseries
+
+struct RuntimeTraceTimeseries: Codable, Equatable {
+    let timestampsMs: [Double]
+    let queueDepth: [Int]
+    let memoryMb: [Double]
+    let activeRequests: [Int]
+
+    static var empty: RuntimeTraceTimeseries {
+        RuntimeTraceTimeseries(
+            timestampsMs: [],
+            queueDepth: [],
+            memoryMb: [],
+            activeRequests: []
+        )
+    }
+}
+
+// MARK: - RuntimeTraceVariant
+
+struct RuntimeTraceVariant: Codable, Equatable {
+    let variantId: String
+    let totalDurationMs: Double
+    let events: [RuntimeTraceEvent]
+    let timeseries: RuntimeTraceTimeseries
+    let summary: TraceVariantSummary
+
+    static var previewBaseline: RuntimeTraceVariant {
+        RuntimeTraceVariant(
+            variantId: "baseline",
+            totalDurationMs: 7900.0,
+            events: [],
+            timeseries: .empty,
+            summary: .previewBaseline
+        )
+    }
+
+    static var previewOptimized: RuntimeTraceVariant {
+        RuntimeTraceVariant(
+            variantId: "optimized",
+            totalDurationMs: 1426.0,
+            events: [],
+            timeseries: .empty,
+            summary: .previewOptimized
         )
     }
 }
@@ -105,27 +176,29 @@ struct TraceVariantSummary: Codable, Equatable {
     }
 }
 
-// MARK: - Decodable wire format
+// MARK: - Wire decoding
 //
-// Separate Decodable types mirror the JSON schema from the runtime repo.
-// RuntimeProfileTraceSummary itself uses camelCase stored properties
-// (decoded via RuntimeProfileTraceWire adapter below).
+// RuntimeProfileTraceWire mirrors the JSON schema from the runtime repo.
+// RuntimeProfileTraceSummary is always constructed via init(wire:), never
+// directly via JSONDecoder, so its own Codable keys do not need to match JSON.
 
 extension RuntimeProfileTraceSummary {
     init(wire: RuntimeProfileTraceWire) {
-        schemaVersion     = wire.schemaVersion
-        artifactType      = wire.artifactType
-        targetProfileId   = wire.targetProfileId
-        modelName         = wire.modelName
+        schemaVersion      = wire.schemaVersion
+        artifactType       = wire.artifactType
+        targetProfileId    = wire.targetProfileId
+        modelName          = wire.modelName
         traceTruthBoundary = wire.traceTruthBoundary
-        compilerPlanRef   = wire.compilerPlanRef
+        compilerPlanRef    = wire.compilerPlanRef
         compilerPlanSource = wire.compilerPlanSource
-        compilerPlanPath  = wire.compilerPlanPath
-        doNotUseForDemo   = wire.doNotUseForDemo
-        provenanceNotes   = wire.provenanceNotes
-        baselineSummary   = wire.variants.baseline.summary.toModel()
-        optimizedSummary  = wire.variants.optimized.summary.toModel()
+        compilerPlanPath   = wire.compilerPlanPath
+        doNotUseForDemo    = wire.doNotUseForDemo
+        provenanceNotes    = wire.provenanceNotes
+        baselineSummary    = wire.variants.baseline.summary.toModel()
+        optimizedSummary   = wire.variants.optimized.summary.toModel()
         comparisonHeadline = wire.comparisonSummary.headline
+        baselineVariant    = wire.variants.baseline.toModel()
+        optimizedVariant   = wire.variants.optimized.toModel()
     }
 }
 
@@ -144,18 +217,18 @@ struct RuntimeProfileTraceWire: Decodable {
     let comparisonSummary: ComparisonSummaryWire
 
     enum CodingKeys: String, CodingKey {
-        case schemaVersion     = "schema_version"
-        case artifactType      = "artifact_type"
-        case targetProfileId   = "target_profile_id"
-        case modelName         = "model_name"
+        case schemaVersion      = "schema_version"
+        case artifactType       = "artifact_type"
+        case targetProfileId    = "target_profile_id"
+        case modelName          = "model_name"
         case traceTruthBoundary = "trace_truth_boundary"
-        case compilerPlanRef   = "compiler_plan_ref"
+        case compilerPlanRef    = "compiler_plan_ref"
         case compilerPlanSource = "compiler_plan_source"
-        case compilerPlanPath  = "compiler_plan_path"
-        case doNotUseForDemo   = "do_not_use_for_demo"
-        case provenanceNotes   = "provenance_notes"
+        case compilerPlanPath   = "compiler_plan_path"
+        case doNotUseForDemo    = "do_not_use_for_demo"
+        case provenanceNotes    = "provenance_notes"
         case variants
-        case comparisonSummary = "comparison_summary"
+        case comparisonSummary  = "comparison_summary"
     }
 
     struct VariantsWire: Decodable {
@@ -164,7 +237,89 @@ struct RuntimeProfileTraceWire: Decodable {
     }
 
     struct VariantWire: Decodable {
+        let variantId: String
+        let totalDurationMs: Double
+        let events: [EventWire]
+        let timeseries: TimeseriesWire
         let summary: VariantSummaryWire
+
+        enum CodingKeys: String, CodingKey {
+            case variantId      = "variant_id"
+            case totalDurationMs = "total_duration_ms"
+            case events
+            case timeseries
+            case summary
+        }
+
+        func toModel() -> RuntimeTraceVariant {
+            RuntimeTraceVariant(
+                variantId: variantId,
+                totalDurationMs: totalDurationMs,
+                events: events.map { $0.toModel() },
+                timeseries: timeseries.toModel(),
+                summary: summary.toModel()
+            )
+        }
+    }
+
+    struct EventWire: Decodable {
+        let category: String
+        let name: String
+        let lane: String
+        let startMs: Double
+        let endMs: Double
+        let durationMs: Double
+        let requestId: String
+        let metadata: [String: String]
+        let truthBoundary: String
+
+        enum CodingKeys: String, CodingKey {
+            case category
+            case name
+            case lane
+            case startMs      = "start_ms"
+            case endMs        = "end_ms"
+            case durationMs   = "duration_ms"
+            case requestId    = "request_id"
+            case metadata
+            case truthBoundary = "truth_boundary"
+        }
+
+        func toModel() -> RuntimeTraceEvent {
+            RuntimeTraceEvent(
+                tsMs: startMs,
+                durMs: durationMs,
+                category: category,
+                name: name,
+                lane: lane,
+                requestId: requestId,
+                metadata: metadata,
+                truthBoundary: truthBoundary
+            )
+        }
+    }
+
+    struct TimeseriesWire: Decodable {
+        let timestampsMs: [Double]
+        let queueDepth: [Int]
+        let memoryMb: [Double]
+        let activeRequests: [Int]
+
+        enum CodingKeys: String, CodingKey {
+            case timestampsMs   = "timestamps_ms"
+            case queueDepth     = "queue_depth"
+            case memoryMb       = "memory_mb"
+            case activeRequests = "active_requests"
+        }
+
+        func toModel() -> RuntimeTraceTimeseries {
+            RuntimeTraceTimeseries(
+                timestampsMs: timestampsMs,
+                queueDepth: queueDepth,
+                memoryMb: memoryMb,
+                activeRequests: activeRequests
+            )
+        }
     }
 
     struct VariantSummaryWire: Decodable {
