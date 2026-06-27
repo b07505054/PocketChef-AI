@@ -23,6 +23,12 @@
 		100000000000000000000116 /* OllamaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000018 /* OllamaClient.swift */; };
 		100000000000000000000119 /* MemoryProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000019 /* MemoryProfiler.swift */; };
 		10000000000000000000011A /* MaskPostprocessRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001A /* MaskPostprocessRuntime.swift */; };
+		10000000000000000000011B /* PortfolioTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001B /* PortfolioTypes.swift */; };
+		10000000000000000000011C /* PortfolioDeviceDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001C /* PortfolioDeviceDomain.swift */; };
+		10000000000000000000011D /* PortfolioCompilerDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001D /* PortfolioCompilerDomain.swift */; };
+		10000000000000000000011E /* PortfolioRuntimeDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001E /* PortfolioRuntimeDomain.swift */; };
+		10000000000000000000011F /* PortfolioValidationDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001F /* PortfolioValidationDomain.swift */; };
+		100000000000000000000120 /* PortfolioCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000020 /* PortfolioCoordinator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +50,12 @@
 		100000000000000000000018 /* OllamaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaClient.swift; sourceTree = "<group>"; };
 		100000000000000000000019 /* MemoryProfiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryProfiler.swift; sourceTree = "<group>"; };
 		10000000000000000000001A /* MaskPostprocessRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaskPostprocessRuntime.swift; sourceTree = "<group>"; };
+		10000000000000000000001B /* PortfolioTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioTypes.swift; sourceTree = "<group>"; };
+		10000000000000000000001C /* PortfolioDeviceDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioDeviceDomain.swift; sourceTree = "<group>"; };
+		10000000000000000000001D /* PortfolioCompilerDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioCompilerDomain.swift; sourceTree = "<group>"; };
+		10000000000000000000001E /* PortfolioRuntimeDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioRuntimeDomain.swift; sourceTree = "<group>"; };
+		10000000000000000000001F /* PortfolioValidationDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioValidationDomain.swift; sourceTree = "<group>"; };
+		100000000000000000000020 /* PortfolioCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioCoordinator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +96,12 @@
 				100000000000000000000018 /* OllamaClient.swift */,
 				100000000000000000000019 /* MemoryProfiler.swift */,
 				10000000000000000000001A /* MaskPostprocessRuntime.swift */,
+				10000000000000000000001B /* PortfolioTypes.swift */,
+				10000000000000000000001C /* PortfolioDeviceDomain.swift */,
+				10000000000000000000001D /* PortfolioCompilerDomain.swift */,
+				10000000000000000000001E /* PortfolioRuntimeDomain.swift */,
+				10000000000000000000001F /* PortfolioValidationDomain.swift */,
+				100000000000000000000020 /* PortfolioCoordinator.swift */,
 				10000000000000000000000C /* Info.plist */,
 			);
 			path = PocketChefAI;
@@ -182,6 +200,12 @@
 				100000000000000000000116 /* OllamaClient.swift in Sources */,
 				100000000000000000000119 /* MemoryProfiler.swift in Sources */,
 				10000000000000000000011A /* MaskPostprocessRuntime.swift in Sources */,
+				10000000000000000000011B /* PortfolioTypes.swift in Sources */,
+				10000000000000000000011C /* PortfolioDeviceDomain.swift in Sources */,
+				10000000000000000000011D /* PortfolioCompilerDomain.swift in Sources */,
+				10000000000000000000011E /* PortfolioRuntimeDomain.swift in Sources */,
+				10000000000000000000011F /* PortfolioValidationDomain.swift in Sources */,
+				100000000000000000000120 /* PortfolioCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
