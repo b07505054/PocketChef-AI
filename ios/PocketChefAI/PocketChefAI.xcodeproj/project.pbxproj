@@ -35,6 +35,11 @@
 		100000000000000000000124 /* CompilerArtifactProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000024 /* CompilerArtifactProvider.swift */; };
 		100000000000000000000125 /* RuntimeArtifactProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000025 /* RuntimeArtifactProvider.swift */; };
 		100000000000000000000126 /* ValidationArtifactProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000026 /* ValidationArtifactProvider.swift */; };
+		100000000000000000000127 /* RuntimeProfileTraceSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000027 /* RuntimeProfileTraceSummary.swift */; };
+		100000000000000000000128 /* RuntimeProfileTraceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000028 /* RuntimeProfileTraceProvider.swift */; };
+		100000000000000000000129 /* RuntimeTracePlaybackDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000029 /* RuntimeTracePlaybackDomain.swift */; };
+		10000000000000000000012A /* serving_execution_plan_iphone.json in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002A /* serving_execution_plan_iphone.json */; };
+		10000000000000000000012B /* runtime_profile_trace.json in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002B /* runtime_profile_trace.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +73,11 @@
 		100000000000000000000024 /* CompilerArtifactProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompilerArtifactProvider.swift; sourceTree = "<group>"; };
 		100000000000000000000025 /* RuntimeArtifactProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeArtifactProvider.swift; sourceTree = "<group>"; };
 		100000000000000000000026 /* ValidationArtifactProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationArtifactProvider.swift; sourceTree = "<group>"; };
+		100000000000000000000027 /* RuntimeProfileTraceSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeProfileTraceSummary.swift; sourceTree = "<group>"; };
+		100000000000000000000028 /* RuntimeProfileTraceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeProfileTraceProvider.swift; sourceTree = "<group>"; };
+		100000000000000000000029 /* RuntimeTracePlaybackDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeTracePlaybackDomain.swift; sourceTree = "<group>"; };
+		10000000000000000000002A /* serving_execution_plan_iphone.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = serving_execution_plan_iphone.json; sourceTree = "<group>"; };
+		10000000000000000000002B /* runtime_profile_trace.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = runtime_profile_trace.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,9 +130,22 @@
 				100000000000000000000024 /* CompilerArtifactProvider.swift */,
 				100000000000000000000025 /* RuntimeArtifactProvider.swift */,
 				100000000000000000000026 /* ValidationArtifactProvider.swift */,
+				100000000000000000000027 /* RuntimeProfileTraceSummary.swift */,
+				100000000000000000000028 /* RuntimeProfileTraceProvider.swift */,
+				100000000000000000000029 /* RuntimeTracePlaybackDomain.swift */,
+				10000000000000000000002C /* Resources */,
 				10000000000000000000000C /* Info.plist */,
 			);
 			path = PocketChefAI;
+			sourceTree = "<group>";
+		};
+		10000000000000000000002C /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				10000000000000000000002A /* serving_execution_plan_iphone.json */,
+				10000000000000000000002B /* runtime_profile_trace.json */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		100000000000000000000303 /* Products */ = {
@@ -193,6 +216,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				100000000000000000000110 /* yolo_food_s_seg_fp32.mlmodelc in Resources */,
+				10000000000000000000012A /* serving_execution_plan_iphone.json in Resources */,
+				10000000000000000000012B /* runtime_profile_trace.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -230,6 +255,9 @@
 				100000000000000000000124 /* CompilerArtifactProvider.swift in Sources */,
 				100000000000000000000125 /* RuntimeArtifactProvider.swift in Sources */,
 				100000000000000000000126 /* ValidationArtifactProvider.swift in Sources */,
+				100000000000000000000127 /* RuntimeProfileTraceSummary.swift in Sources */,
+				100000000000000000000128 /* RuntimeProfileTraceProvider.swift in Sources */,
+				100000000000000000000129 /* RuntimeTracePlaybackDomain.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -14,7 +14,7 @@ struct TargetDeviceProfileProvider: TargetDeviceProfileProviding {
 
         // ProcessInfo — documented thread-safe
         let physicalMemory = ProcessInfo.processInfo.physicalMemory
-        let physicalProcessorCount = ProcessInfo.processInfo.physicalProcessorCount
+        let physicalProcessorCount = Self.physicalProcessorCount()
         let thermalState = Self.thermalString(ProcessInfo.processInfo.thermalState)
         let isLowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
 
@@ -71,6 +71,16 @@ struct TargetDeviceProfileProvider: TargetDeviceProfileProviding {
             .replacingOccurrences(of: " ", with: "")
             .replacingOccurrences(of: ".", with: "")
         return "apple-\(model)-\(chipSlug)"
+    }
+
+    // physicalProcessorCount is macOS-only; use processorCount on iOS (logical count).
+    // Value is device metadata only — not a measured performance figure.
+    private static func physicalProcessorCount() -> Int {
+#if os(iOS)
+        return ProcessInfo.processInfo.processorCount
+#else
+        return ProcessInfo.processInfo.physicalProcessorCount
+#endif
     }
 
     private static func thermalString(_ state: ProcessInfo.ThermalState) -> String {
