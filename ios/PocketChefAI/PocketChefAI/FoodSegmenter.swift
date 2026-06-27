@@ -30,7 +30,7 @@ final class FoodSegmenter {
         var loadErrors: [String] = []
         request = nil
 
-        for name in mode.fastSAMModelCandidates {
+        for name in mode.legacyModelCandidates {
             guard let url = modelURL(named: name) else { continue }
 
             do {
@@ -50,7 +50,7 @@ final class FoodSegmenter {
             }
         }
 
-        activeModelName = mode.fastSAMModelCandidates.joined(separator: ", ")
+        activeModelName = mode.legacyModelCandidates.joined(separator: ", ")
         loadMessage = loadErrors.isEmpty
             ? "FastSAM model not found"
             : "FastSAM load failed: \(loadErrors.joined(separator: " | "))"
