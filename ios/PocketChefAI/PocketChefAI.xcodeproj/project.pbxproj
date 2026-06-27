@@ -29,6 +29,12 @@
 		10000000000000000000011E /* PortfolioRuntimeDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001E /* PortfolioRuntimeDomain.swift */; };
 		10000000000000000000011F /* PortfolioValidationDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001F /* PortfolioValidationDomain.swift */; };
 		100000000000000000000120 /* PortfolioCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000020 /* PortfolioCoordinator.swift */; };
+		100000000000000000000121 /* PortfolioProviderError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000021 /* PortfolioProviderError.swift */; };
+		100000000000000000000122 /* PortfolioProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000022 /* PortfolioProviders.swift */; };
+		100000000000000000000123 /* TargetDeviceProfileProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000023 /* TargetDeviceProfileProvider.swift */; };
+		100000000000000000000124 /* CompilerArtifactProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000024 /* CompilerArtifactProvider.swift */; };
+		100000000000000000000125 /* RuntimeArtifactProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000025 /* RuntimeArtifactProvider.swift */; };
+		100000000000000000000126 /* ValidationArtifactProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000026 /* ValidationArtifactProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +62,12 @@
 		10000000000000000000001E /* PortfolioRuntimeDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioRuntimeDomain.swift; sourceTree = "<group>"; };
 		10000000000000000000001F /* PortfolioValidationDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioValidationDomain.swift; sourceTree = "<group>"; };
 		100000000000000000000020 /* PortfolioCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioCoordinator.swift; sourceTree = "<group>"; };
+		100000000000000000000021 /* PortfolioProviderError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioProviderError.swift; sourceTree = "<group>"; };
+		100000000000000000000022 /* PortfolioProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioProviders.swift; sourceTree = "<group>"; };
+		100000000000000000000023 /* TargetDeviceProfileProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetDeviceProfileProvider.swift; sourceTree = "<group>"; };
+		100000000000000000000024 /* CompilerArtifactProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompilerArtifactProvider.swift; sourceTree = "<group>"; };
+		100000000000000000000025 /* RuntimeArtifactProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeArtifactProvider.swift; sourceTree = "<group>"; };
+		100000000000000000000026 /* ValidationArtifactProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationArtifactProvider.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +114,12 @@
 				10000000000000000000001E /* PortfolioRuntimeDomain.swift */,
 				10000000000000000000001F /* PortfolioValidationDomain.swift */,
 				100000000000000000000020 /* PortfolioCoordinator.swift */,
+				100000000000000000000021 /* PortfolioProviderError.swift */,
+				100000000000000000000022 /* PortfolioProviders.swift */,
+				100000000000000000000023 /* TargetDeviceProfileProvider.swift */,
+				100000000000000000000024 /* CompilerArtifactProvider.swift */,
+				100000000000000000000025 /* RuntimeArtifactProvider.swift */,
+				100000000000000000000026 /* ValidationArtifactProvider.swift */,
 				10000000000000000000000C /* Info.plist */,
 			);
 			path = PocketChefAI;
@@ -206,6 +224,12 @@
 				10000000000000000000011E /* PortfolioRuntimeDomain.swift in Sources */,
 				10000000000000000000011F /* PortfolioValidationDomain.swift in Sources */,
 				100000000000000000000120 /* PortfolioCoordinator.swift in Sources */,
+				100000000000000000000121 /* PortfolioProviderError.swift in Sources */,
+				100000000000000000000122 /* PortfolioProviders.swift in Sources */,
+				100000000000000000000123 /* TargetDeviceProfileProvider.swift in Sources */,
+				100000000000000000000124 /* CompilerArtifactProvider.swift in Sources */,
+				100000000000000000000125 /* RuntimeArtifactProvider.swift in Sources */,
+				100000000000000000000126 /* ValidationArtifactProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
