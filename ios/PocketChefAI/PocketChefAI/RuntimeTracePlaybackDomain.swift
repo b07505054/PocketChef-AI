@@ -15,7 +15,9 @@ final class RuntimeTracePlaybackDomain: ObservableObject {
     @Published private(set) var trace: RuntimeProfileTraceSummary?
     @Published private(set) var status: PipelineStageStatus = .notStarted
     @Published private(set) var warning: String?
+    @Published private(set) var comparisonState: ComparisonPlaybackState?
 
+    private var comparisonEngine: ComparisonPlaybackEngine?
     private let provider: any RuntimeProfileTraceProviding
 
     init(provider: any RuntimeProfileTraceProviding = RuntimeProfileTraceProvider()) {
@@ -25,16 +27,29 @@ final class RuntimeTracePlaybackDomain: ObservableObject {
     func load() async {
         status = .loading
         warning = nil
+        comparisonState = nil
+        comparisonEngine = nil
         do {
             let loaded = try await provider.loadTraceSummary()
             trace = loaded
             if loaded.doNotUseForDemo || !loaded.isCompilerArtifact {
                 warning = "⚠ Development Fixture — compiler pipeline is bypassed."
             }
+            let engine = ComparisonPlaybackEngine(trace: loaded)
+            comparisonEngine = engine
+            engine.seek(toMs: engine.totalDurationMs * 0.5)
+            comparisonState = engine.currentState()
             status = .loaded
         } catch {
             status = .failed(String(describing: error))
         }
+    }
+
+    // Seek the preview scrubber to a 0…1 progress position.
+    func seekPreview(to progress: Double) {
+        guard let engine = comparisonEngine else { return }
+        engine.seek(toMs: engine.totalDurationMs * max(0, min(1, progress)))
+        comparisonState = engine.currentState()
     }
 
     // MARK: - Previews
@@ -43,6 +58,10 @@ final class RuntimeTracePlaybackDomain: ObservableObject {
         let d = RuntimeTracePlaybackDomain(provider: _PreviewProvider(trace: .preview))
         d.trace = .preview
         d.status = .loaded
+        let engine = ComparisonPlaybackEngine(trace: .preview)
+        engine.seek(toMs: engine.totalDurationMs * 0.5)
+        d.comparisonEngine = engine
+        d.comparisonState = engine.currentState()
         return d
     }
 
@@ -51,6 +70,10 @@ final class RuntimeTracePlaybackDomain: ObservableObject {
         d.trace = .fixturePreview
         d.status = .loaded
         d.warning = "⚠ Development Fixture — compiler pipeline is bypassed."
+        let engine = ComparisonPlaybackEngine(trace: .fixturePreview)
+        engine.seek(toMs: engine.totalDurationMs * 0.5)
+        d.comparisonEngine = engine
+        d.comparisonState = engine.currentState()
         return d
     }
 }

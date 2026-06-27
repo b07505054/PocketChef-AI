@@ -3,6 +3,7 @@ import UIKit
 
 struct ResultSheet: View {
     @ObservedObject var viewModel: CameraViewModel
+    var traceDomain: RuntimeTracePlaybackDomain? = nil
     var onReturnToCamera: () -> Void = {}
     @AppStorage("ollamaHost") private var ollamaHost = "http://127.0.0.1:11434"
     @AppStorage("ollamaModel") private var ollamaModel = "qwen2.5:3b-instruct"
@@ -27,6 +28,9 @@ struct ResultSheet: View {
                     recipeStepsCard
                     shoppingCard
                     benchmarkCard
+                    if let td = traceDomain {
+                        RuntimeTracePlaybackCard(traceDomain: td)
+                    }
                 }
                 .padding(16)
             }
@@ -599,7 +603,7 @@ struct ResultSheet: View {
     }
 }
 
-private extension View {
+extension View {
     func cardStyle() -> some View {
         padding(16)
             .background(Color(red: 0.12, green: 0.12, blue: 0.125))
@@ -609,5 +613,4 @@ private extension View {
                     .stroke(.white.opacity(0.08), lineWidth: 1)
         )
     }
-
 }

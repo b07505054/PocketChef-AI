@@ -40,6 +40,7 @@
 		100000000000000000000129 /* RuntimeTracePlaybackDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000029 /* RuntimeTracePlaybackDomain.swift */; };
 		10000000000000000000012C /* RuntimePlaybackState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002D /* RuntimePlaybackState.swift */; };
 		10000000000000000000012D /* RuntimePlaybackEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002E /* RuntimePlaybackEngine.swift */; };
+		10000000000000000000012E /* RuntimeTracePlaybackCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002F /* RuntimeTracePlaybackCard.swift */; };
 		10000000000000000000012A /* serving_execution_plan_iphone.json in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002A /* serving_execution_plan_iphone.json */; };
 		10000000000000000000012B /* runtime_profile_trace.json in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002B /* runtime_profile_trace.json */; };
 /* End PBXBuildFile section */
@@ -80,6 +81,7 @@
 		100000000000000000000029 /* RuntimeTracePlaybackDomain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeTracePlaybackDomain.swift; sourceTree = "<group>"; };
 		10000000000000000000002D /* RuntimePlaybackState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimePlaybackState.swift; sourceTree = "<group>"; };
 		10000000000000000000002E /* RuntimePlaybackEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimePlaybackEngine.swift; sourceTree = "<group>"; };
+		10000000000000000000002F /* RuntimeTracePlaybackCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeTracePlaybackCard.swift; sourceTree = "<group>"; };
 		10000000000000000000002A /* serving_execution_plan_iphone.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = serving_execution_plan_iphone.json; sourceTree = "<group>"; };
 		10000000000000000000002B /* runtime_profile_trace.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = runtime_profile_trace.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -139,6 +141,7 @@
 				100000000000000000000029 /* RuntimeTracePlaybackDomain.swift */,
 				10000000000000000000002D /* RuntimePlaybackState.swift */,
 				10000000000000000000002E /* RuntimePlaybackEngine.swift */,
+				10000000000000000000002F /* RuntimeTracePlaybackCard.swift */,
 				10000000000000000000002C /* Resources */,
 				10000000000000000000000C /* Info.plist */,
 			);
@@ -266,6 +269,7 @@
 				100000000000000000000129 /* RuntimeTracePlaybackDomain.swift in Sources */,
 				10000000000000000000012C /* RuntimePlaybackState.swift in Sources */,
 				10000000000000000000012D /* RuntimePlaybackEngine.swift in Sources */,
+				10000000000000000000012E /* RuntimeTracePlaybackCard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

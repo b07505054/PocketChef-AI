@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var viewModel = CameraViewModel()
+    @StateObject private var coordinator = PortfolioCoordinator()
     @State private var showsResultSheet = false
 
     var body: some View {
@@ -88,12 +89,13 @@ struct ContentView: View {
         }
         .task {
             viewModel.start()
+            await coordinator.loadCompilerArtifacts()
         }
         .onDisappear {
             viewModel.stop()
         }
         .sheet(isPresented: $showsResultSheet) {
-            ResultSheet(viewModel: viewModel) {
+            ResultSheet(viewModel: viewModel, traceDomain: coordinator.trace) {
                 showsResultSheet = false
             }
         }
