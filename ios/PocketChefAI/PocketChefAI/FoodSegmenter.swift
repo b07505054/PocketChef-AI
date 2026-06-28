@@ -47,6 +47,11 @@ final class FoodSegmenter {
                 return
             } catch {
                 loadErrors.append("\(name): \(error.localizedDescription)")
+                let ns = error as NSError
+                print("[FoodSegmenter] MLModel load failed — url=\(url.path) name=\(name)")
+                print("[FoodSegmenter]   localizedDescription: \(ns.localizedDescription)")
+                print("[FoodSegmenter]   domain=\(ns.domain) code=\(ns.code)")
+                print("[FoodSegmenter]   userInfo=\(ns.userInfo)")
             }
         }
 

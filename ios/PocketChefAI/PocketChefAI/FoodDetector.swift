@@ -139,6 +139,11 @@ final class FoodDetector {
                     return visionModel
                 } catch {
                     loadErrors.append("\(name): \(error.localizedDescription)")
+                    let ns = error as NSError
+                    print("[FoodDetector] MLModel load failed — url=\(url.path) name=\(name)")
+                    print("[FoodDetector]   localizedDescription: \(ns.localizedDescription)")
+                    print("[FoodDetector]   domain=\(ns.domain) code=\(ns.code)")
+                    print("[FoodDetector]   userInfo=\(ns.userInfo)")
                     continue
                 }
             }

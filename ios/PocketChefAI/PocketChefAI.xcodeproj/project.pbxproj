@@ -253,7 +253,55 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "MODELS_DIR=\"${SRCROOT}/../../models\"\nDEST_DIR=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n\necho \"Copy Optional Core ML Models\"\necho \"Models dir: ${MODELS_DIR}\"\n\nif [ ! -d \"${MODELS_DIR}\" ]; then\n  echo \"No models directory found; skipping optional model copy.\"\n  exit 0\nfi\n\nFOUND=0\n\nfor EXT in mlmodelc mlmodel mlpackage; do\n  while IFS= read -r MODEL_PATH; do\n    [ -z \"${MODEL_PATH}\" ] && continue\n    FOUND=1\n    echo \"Copying optional model: ${MODEL_PATH}\"\n    cp -R \"${MODEL_PATH}\" \"${DEST_DIR}/\"\n  done < <(find \"${MODELS_DIR}\" -maxdepth 1 -name \"*.${EXT}\" -print)\ndone\n\nif [ \"${FOUND}\" -eq 0 ]; then\n  echo \"No optional Core ML models found; app will use missing-model fallback.\"\nfi\n\nexit 0\n";
+			shellScript = "MODELS_DIR=\"${SRCROOT}/../../models\"
+DEST_DIR=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"
+
+echo \"Copy Optional Core ML Models\"
+echo \"Models dir: ${MODELS_DIR}\"
+
+if [ ! -d \"${MODELS_DIR}\" ]; then
+  echo \"No models directory found; skipping optional model copy.\"
+  exit 0
+fi
+
+FOUND=0
+COMPILE_DIR=$(mktemp -d)
+
+while IFS= read -r MODEL_PATH; do
+  [ -z \"${MODEL_PATH}\" ] && continue
+  FOUND=1
+  echo \"Copying compiled model: ${MODEL_PATH}\"
+  cp -R \"${MODEL_PATH}\" \"${DEST_DIR}/\"
+done < <(find \"${MODELS_DIR}\" -maxdepth 1 -name \"*.mlmodelc\" -print)
+
+for EXT in mlpackage mlmodel; do
+  while IFS= read -r MODEL_PATH; do
+    [ -z \"${MODEL_PATH}\" ] && continue
+    FOUND=1
+    echo \"Compiling ${EXT}: ${MODEL_PATH}\"
+    if xcrun coremlcompiler compile \"${MODEL_PATH}\" \"${COMPILE_DIR}\"; then
+      COMPILED=$(find \"${COMPILE_DIR}\" -maxdepth 1 -name \"*.mlmodelc\" -print | head -1)
+      if [ -n \"${COMPILED}\" ]; then
+        echo \"Copying compiled model: ${COMPILED}\"
+        cp -R \"${COMPILED}\" \"${DEST_DIR}/\"
+        rm -rf \"${COMPILED}\"
+      else
+        echo \"Warning: coremlcompiler produced no .mlmodelc for ${MODEL_PATH}\"
+      fi
+    else
+      echo \"Warning: coremlcompiler failed for ${MODEL_PATH}\"
+    fi
+  done < <(find \"${MODELS_DIR}\" -maxdepth 1 -name \"*.${EXT}\" -print)
+done
+
+rm -rf \"${COMPILE_DIR}\"
+
+if [ \"${FOUND}\" -eq 0 ]; then
+  echo \"No optional Core ML models found; app will use missing-model fallback.\"
+fi
+
+exit 0
+";
 		};
 /* End PBXShellScriptBuildPhase section */
 
