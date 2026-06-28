@@ -4,6 +4,7 @@ import UIKit
 struct ResultSheet: View {
     @ObservedObject var viewModel: CameraViewModel
     var traceDomain: RuntimeTracePlaybackDomain? = nil
+    var servingPlan: ServingExecutionPlanSummary? = nil
     var onReturnToCamera: () -> Void = {}
     @AppStorage("ollamaHost") private var ollamaHost = "http://127.0.0.1:11434"
     @AppStorage("ollamaModel") private var ollamaModel = "qwen2.5:3b-instruct"
@@ -28,6 +29,9 @@ struct ResultSheet: View {
                     recipeStepsCard
                     shoppingCard
                     benchmarkCard
+                    if let plan = servingPlan {
+                        compilerPlanCard(plan: plan)
+                    }
                     if let td = traceDomain {
                         RuntimeTracePlaybackCard(traceDomain: td)
                     }
@@ -456,6 +460,44 @@ struct ResultSheet: View {
                     .font(.caption.weight(.black))
                     .foregroundStyle(.white.opacity(0.86))
             }
+        }
+        .cardStyle()
+    }
+
+    private func compilerPlanCard(plan: ServingExecutionPlanSummary) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                cardTitle("Compiler Serving Plan")
+                Spacer()
+                Image(systemName: "cpu.fill")
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.green)
+            }
+
+            Text("Compiler artifact — not live execution")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.48))
+                .fixedSize(horizontal: false, vertical: true)
+
+            row("Model", plan.modelName)
+            row("Target", plan.targetProfileId)
+            row("Decision", plan.decisionSource)
+
+            HStack(alignment: .firstTextBaseline) {
+                Text("Cost source")
+                    .font(.callout.weight(.bold))
+                    .foregroundStyle(.white.opacity(0.82))
+                Spacer(minLength: 16)
+                Text(plan.costSource)
+                    .font(.caption2.weight(.black))
+                    .foregroundStyle(.green)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.green.opacity(0.12))
+                    .clipShape(Capsule())
+                    .overlay(Capsule().stroke(.green.opacity(0.32), lineWidth: 1))
+            }
+            .padding(.vertical, 3)
         }
         .cardStyle()
     }

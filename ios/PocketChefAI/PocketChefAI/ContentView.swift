@@ -95,7 +95,11 @@ struct ContentView: View {
             viewModel.stop()
         }
         .sheet(isPresented: $showsResultSheet) {
-            ResultSheet(viewModel: viewModel, traceDomain: coordinator.trace) {
+            ResultSheet(
+                viewModel: viewModel,
+                traceDomain: coordinator.trace,
+                servingPlan: coordinator.compiler.servingPlan
+            ) {
                 showsResultSheet = false
             }
         }

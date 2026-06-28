@@ -5,7 +5,8 @@ import Foundation
 enum PortfolioTruthBoundary {
     static let deviceProfile    = "declared_device_profile_not_measured_silicon_performance"
     static let compilerArtifact = "artifact_backed_not_live_compilation"
-    static let runtimeResult    = "live_runtime_on_device_not_compiler_plan"
+    static let runtimeResult            = "live_runtime_on_device_not_compiler_plan"
+    static let simulatedRuntimeSnapshot = "offline_simulation_not_live_device_execution"
     static let validationReport = "validation_of_compiler_runtime_consistency_not_measured_performance"
     static let performanceMetrics = "measured_on_device_inference"
 }
@@ -138,7 +139,7 @@ struct RuntimeExecutionPlanSummary: Codable, Equatable {
             kvPolicySummary: "contiguous",
             replayPolicySummary: "eligible",
             compilerProvenance: "compiler_execution_provider_plan_not_runtime_dispatch",
-            truthBoundary: PortfolioTruthBoundary.runtimeResult,
+            truthBoundary: PortfolioTruthBoundary.simulatedRuntimeSnapshot,
             loadedAt: Date()
         )
     }
@@ -211,7 +212,7 @@ struct RuntimeResultSummary: Codable, Equatable {
                 "backend_dispatcher",
                 "execution_engine"
             ],
-            truthBoundary: PortfolioTruthBoundary.runtimeResult,
+            truthBoundary: PortfolioTruthBoundary.simulatedRuntimeSnapshot,
             snapshotAt: Date()
         )
     }
