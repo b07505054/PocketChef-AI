@@ -471,8 +471,130 @@ struct ResultSheet: View {
                         .foregroundStyle(.white.opacity(0.86))
                 }
             }
+
+            Divider()
+                .overlay(.white.opacity(0.1))
+
+            HStack(spacing: 8) {
+                cardTitle("Device Benchmark")
+                Spacer()
+                Image(systemName: "stopwatch.fill")
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.green)
+            }
+
+            if !viewModel.isPhotoCaptured || viewModel.targetPrompt == nil {
+                Text(viewModel.isPhotoCaptured
+                     ? "Tap a target object to enable benchmarking."
+                     : "Capture a photo and tap a target to enable benchmarking.")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.45))
+            } else {
+                Button {
+                    let configs = BenchmarkConfig.computeUnitSweep(
+                        modelName: viewModel.activeModel,
+                        optimizationMode: viewModel.optimizationMode
+                    )
+                    Task { await viewModel.runBenchmark(configs: configs) }
+                } label: {
+                    HStack(spacing: 8) {
+                        if viewModel.isBenchmarking {
+                            ProgressView()
+                                .tint(.black)
+                                .scaleEffect(0.86)
+                        } else {
+                            Image(systemName: "cpu.fill")
+                        }
+                        Text(viewModel.isBenchmarking ? "Running..." : "Benchmark Device")
+                    }
+                    .font(.callout.weight(.black))
+                    .foregroundStyle(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 11)
+                    .background(.green)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .disabled(viewModel.isBenchmarking)
+                .opacity(viewModel.isBenchmarking ? 0.75 : 1)
+            }
+
+            if !viewModel.benchmarkResults.isEmpty {
+                deviceBenchmarkTable
+            }
         }
         .cardStyle()
+    }
+
+    private var deviceBenchmarkTable: some View {
+        let sorted = viewModel.benchmarkResults.sorted { $0.p50TotalMs < $1.p50TotalMs }
+        let bestP50 = sorted.first?.p50TotalMs ?? 0
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 0) {
+                benchHeader("Config", width: 72)
+                benchHeader("Load")
+                benchHeader("p50")
+                benchHeader("p95")
+                benchHeader("Mask")
+            }
+
+            Divider().overlay(.white.opacity(0.1))
+
+            ForEach(sorted) { result in
+                let isBest = result.p50TotalMs == bestP50
+                let avgMask = result.samples.isEmpty ? 0.0
+                    : result.samples.map(\.maskDecodeMs).reduce(0, +) / Double(result.samples.count)
+                HStack(spacing: 0) {
+                    Text(result.config.label)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(isBest ? .green : .white)
+                        .frame(width: 72, alignment: .leading)
+                    benchCell(String(format: "%.0f", result.modelLoadMs), fastest: false)
+                    benchCell(String(format: "%.0f", result.p50TotalMs), fastest: isBest)
+                    benchCell(String(format: "%.0f", result.p95TotalMs), fastest: false)
+                    benchCell(String(format: "%.0f", avgMask), fastest: false)
+                }
+            }
+
+            if let last = viewModel.benchmarkResults.last {
+                Text("Thermal: \(last.thermalState) | Low power: \(last.lowPowerMode ? "on" : "off")")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.45))
+                    .padding(.top, 2)
+            }
+
+            Button {
+                let warmup = viewModel.benchmarkResults.first?.warmupRuns ?? 1
+                let runs = viewModel.benchmarkResults.first?.measuredRuns ?? 5
+                UIPasteboard.general.string = benchmarkExportJSON(
+                    results: viewModel.benchmarkResults,
+                    warmupRuns: warmup,
+                    measuredRuns: runs
+                )
+            } label: {
+                Label("Copy device benchmark JSON", systemImage: "doc.on.doc.fill")
+                    .font(.caption.weight(.black))
+                    .foregroundStyle(.white.opacity(0.86))
+            }
+        }
+        .padding(12)
+        .background(.white.opacity(0.04))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(.white.opacity(0.08), lineWidth: 1))
+    }
+
+    private func benchHeader(_ title: String, width: CGFloat? = nil) -> some View {
+        Text(title)
+            .font(.caption2.weight(.black))
+            .foregroundStyle(.white.opacity(0.55))
+            .frame(maxWidth: width == nil ? .infinity : nil, alignment: .leading)
+            .frame(width: width, alignment: .leading)
+    }
+
+    private func benchCell(_ value: String, fastest: Bool) -> some View {
+        Text(value)
+            .font(.caption.weight(.semibold).monospacedDigit())
+            .foregroundStyle(fastest ? .green : .white.opacity(0.7))
+            .frame(maxWidth: .infinity)
     }
 
     private func compilerPlanCard(plan: ServingExecutionPlanSummary) -> some View {

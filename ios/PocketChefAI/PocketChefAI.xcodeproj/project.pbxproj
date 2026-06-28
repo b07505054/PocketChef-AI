@@ -44,6 +44,7 @@
 		10000000000000000000012A /* serving_execution_plan_iphone.json in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002A /* serving_execution_plan_iphone.json */; };
 		10000000000000000000012B /* runtime_profile_trace.json in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000002B /* runtime_profile_trace.json */; };
 		100000000000000000000130 /* serving_execution_plan_iphone15_5.json in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000031 /* serving_execution_plan_iphone15_5.json */; };
+		100000000000000000000132 /* CoreMLBenchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000131 /* CoreMLBenchmark.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -86,6 +87,7 @@
 		10000000000000000000002A /* serving_execution_plan_iphone.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = serving_execution_plan_iphone.json; sourceTree = "<group>"; };
 		10000000000000000000002B /* runtime_profile_trace.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = runtime_profile_trace.json; sourceTree = "<group>"; };
 		100000000000000000000031 /* serving_execution_plan_iphone15_5.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = serving_execution_plan_iphone15_5.json; sourceTree = "<group>"; };
+		100000000000000000000131 /* CoreMLBenchmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreMLBenchmark.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -144,6 +146,7 @@
 				10000000000000000000002E /* RuntimePlaybackEngine.swift */,
 				10000000000000000000002F /* RuntimeTracePlaybackCard.swift */,
 				100000000000000000000030 /* DeviceProfileExporter.swift */,
+				100000000000000000000131 /* CoreMLBenchmark.swift */,
 				10000000000000000000002C /* Resources */,
 				10000000000000000000000C /* Info.plist */,
 			);
@@ -344,6 +347,7 @@ exit 0
 				10000000000000000000012D /* RuntimePlaybackEngine.swift in Sources */,
 				10000000000000000000012E /* RuntimeTracePlaybackCard.swift in Sources */,
 				10000000000000000000012F /* DeviceProfileExporter.swift in Sources */,
+				100000000000000000000132 /* CoreMLBenchmark.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

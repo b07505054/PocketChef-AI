@@ -42,6 +42,18 @@ final class FoodDetector {
         legacyVisionModel = loadLegacyVisionModel(mode: mode)
     }
 
+    @discardableResult
+    func configureForBenchmark(computeUnits: MLComputeUnits) -> Double {
+        guard let url = modelURL(named: modelName) else { return 0 }
+        let loadStart = CFAbsoluteTimeGetCurrent()
+        let config = MLModelConfiguration()
+        config.computeUnits = computeUnits
+        guard let model = try? MLModel(contentsOf: url, configuration: config),
+              let visionModel = try? VNCoreMLModel(for: model) else { return 0 }
+        legacyVisionModel = visionModel
+        return (CFAbsoluteTimeGetCurrent() - loadStart) * 1000
+    }
+
     func detect(
         pixelBuffer: CVPixelBuffer,
         orientation: CGImagePropertyOrientation,

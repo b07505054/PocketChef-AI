@@ -10,6 +10,7 @@ final class CameraViewModel: NSObject, ObservableObject {
             recordMemoryEvent("before_model_load", metadata: modeSwitchMetadata())
             metrics.reset()
             detections = []
+            benchmarkResults = []
             DetectionMaskImageCache.clear()
             selectedMaskSummary = "Target: none"
             currentRecipe = RecipePlan.empty
@@ -24,6 +25,8 @@ final class CameraViewModel: NSObject, ObservableObject {
             }
         }
     }
+    @Published var benchmarkResults: [BenchmarkResult] = []
+    @Published var isBenchmarking = false
     @Published var activeBackend = "No Core ML model loaded"
     @Published var activeModel = "missing_yolo_food_model"
     @Published var bundleInventory = "Bundle models: scanning..."
@@ -167,6 +170,81 @@ final class CameraViewModel: NSObject, ObservableObject {
 
     func recordLLMMemoryEvent(_ event: String, metadata: [String: String] = [:]) {
         recordMemoryEvent(event, metadata: metadata)
+    }
+
+    func runBenchmark(configs: [BenchmarkConfig], warmup: Int = 1, runs: Int = 5) async {
+        guard !configs.isEmpty,
+              let pixelBuffer = capturedPixelBuffer,
+              let promptPoint = targetPrompt else { return }
+
+        let originalMode = optimizationMode
+        let orientation = capturedGeometry?.visionOrientation ?? .up
+
+        await MainActor.run {
+            isBenchmarking = true
+            benchmarkResults = []
+        }
+
+        for config in configs {
+            let result: BenchmarkResult = await withCheckedContinuation { continuation in
+                inferenceQueue.async {
+                    let loadMs = self.detector.configureForBenchmark(computeUnits: config.computeUnits)
+                    for _ in 0..<warmup {
+                        _ = self.detector.detect(
+                            pixelBuffer: pixelBuffer,
+                            orientation: orientation,
+                            mode: originalMode,
+                            promptPoint: promptPoint
+                        )
+                    }
+                    var samples: [BenchmarkSample] = []
+                    for _ in 0..<runs {
+                        let frame = self.detector.detect(
+                            pixelBuffer: pixelBuffer,
+                            orientation: orientation,
+                            mode: originalMode,
+                            promptPoint: promptPoint
+                        )
+                        let maskMs = Double(frame.memoryMetadata["mask_decode_latency_ms"] ?? "0") ?? 0
+                        samples.append(BenchmarkSample(totalMs: frame.latencyMs, maskDecodeMs: maskMs))
+                    }
+                    let r = BenchmarkResult.make(
+                        config: config,
+                        modelLoadMs: loadMs,
+                        warmupRuns: warmup,
+                        measuredRuns: runs,
+                        samples: samples,
+                        thermalState: self.thermalStateString(),
+                        lowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled
+                    )
+                    continuation.resume(returning: r)
+                }
+            }
+            await MainActor.run {
+                benchmarkResults.append(result)
+            }
+        }
+
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            inferenceQueue.async {
+                self.detector.configure(mode: originalMode)
+                continuation.resume()
+            }
+        }
+
+        await MainActor.run {
+            isBenchmarking = false
+        }
+    }
+
+    private func thermalStateString() -> String {
+        switch ProcessInfo.processInfo.thermalState {
+        case .nominal:    return "nominal"
+        case .fair:       return "fair"
+        case .serious:    return "serious"
+        case .critical:   return "critical"
+        @unknown default: return "unknown"
+        }
     }
 
     var memoryReportJSON: String {
