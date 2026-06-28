@@ -19,7 +19,6 @@
 		10000000000000000000010A /* FoodDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000000A /* FoodDetector.swift */; };
 		10000000000000000000010B /* CameraViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000000B /* CameraViewModel.swift */; };
 		10000000000000000000010E /* PocketChefPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000010 /* PocketChefPlanner.swift */; };
-		100000000000000000000110 /* yolo_food_s_seg_fp32.mlmodelc in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000012 /* yolo_food_s_seg_fp32.mlmodelc */; };
 		100000000000000000000116 /* OllamaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000018 /* OllamaClient.swift */; };
 		100000000000000000000119 /* MemoryProfiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000019 /* MemoryProfiler.swift */; };
 		10000000000000000000011A /* MaskPostprocessRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001A /* MaskPostprocessRuntime.swift */; };
@@ -61,7 +60,6 @@
 		10000000000000000000000C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		10000000000000000000000D /* PocketChefAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PocketChefAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		100000000000000000000010 /* PocketChefPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PocketChefPlanner.swift; sourceTree = "<group>"; };
-		100000000000000000000012 /* yolo_food_s_seg_fp32.mlmodelc */ = {isa = PBXFileReference; lastKnownFileType = wrapper.mlmodelc; name = yolo_food_s_seg_fp32.mlmodelc; path = ../../models/yolo_food_s_seg_fp32.mlmodelc; sourceTree = "<group>"; };
 		100000000000000000000018 /* OllamaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaClient.swift; sourceTree = "<group>"; };
 		100000000000000000000019 /* MemoryProfiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryProfiler.swift; sourceTree = "<group>"; };
 		10000000000000000000001A /* MaskPostprocessRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaskPostprocessRuntime.swift; sourceTree = "<group>"; };
@@ -103,7 +101,6 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000302 /* PocketChefAI */,
-				100000000000000000000012 /* yolo_food_s_seg_fp32.mlmodelc */,
 				100000000000000000000303 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -178,6 +175,7 @@
 				100000000000000000000501 /* Sources */,
 				100000000000000000000201 /* Frameworks */,
 				100000000000000000000502 /* Resources */,
+				100000000000000000000503 /* Copy Optional Core ML Models */,
 			);
 			buildRules = (
 			);
@@ -227,13 +225,33 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				100000000000000000000110 /* yolo_food_s_seg_fp32.mlmodelc in Resources */,
 				10000000000000000000012A /* serving_execution_plan_iphone.json in Resources */,
 				10000000000000000000012B /* runtime_profile_trace.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		100000000000000000000503 /* Copy Optional Core ML Models */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Optional Core ML Models";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "MODELS_DIR=\"${SRCROOT}/../../models\"\nDEST_DIR=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n\necho \"Copy Optional Core ML Models\"\necho \"Models dir: ${MODELS_DIR}\"\n\nif [ ! -d \"${MODELS_DIR}\" ]; then\n  echo \"No models directory found; skipping optional model copy.\"\n  exit 0\nfi\n\nFOUND=0\n\nfor EXT in mlmodelc mlmodel mlpackage; do\n  while IFS= read -r MODEL_PATH; do\n    [ -z \"${MODEL_PATH}\" ] && continue\n    FOUND=1\n    echo \"Copying optional model: ${MODEL_PATH}\"\n    cp -R \"${MODEL_PATH}\" \"${DEST_DIR}/\"\n  done < <(find \"${MODELS_DIR}\" -maxdepth 1 -name \"*.${EXT}\" -print)\ndone\n\nif [ \"${FOUND}\" -eq 0 ]; then\n  echo \"No optional Core ML models found; app will use missing-model fallback.\"\nfi\n\nexit 0\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		100000000000000000000501 /* Sources */ = {
