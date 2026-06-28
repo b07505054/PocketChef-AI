@@ -14,16 +14,17 @@ enum OptimizationMode: String, CaseIterable, Identifiable {
     var legacyModelCandidates: [String] {
         switch self {
         case .baseline:
-            return ["yolo_food_s_seg_fp32"]
+            return ["yolo_food_n_seg_fp32", "yolo_food_s_seg_fp32"]
         case .runtime:
-            return ["yolo_food_s_seg_fp32"]
+            return ["yolo_food_n_seg_fp32", "yolo_food_s_seg_fp32"]
         case .compiler:
-            return ["yolo_food_s_seg_fp32"]
+            return ["yolo_food_n_seg_fp32", "yolo_food_s_seg_fp32"]
         case .compression:
             return [
                 "yolo_food_s_seg_int8",
                 "yolo_food_s_seg_pruned",
                 "yolo_food_s_seg_fp16",
+                "yolo_food_n_seg_fp32",
                 "yolo_food_s_seg_fp32"
             ]
         case .combined:
@@ -31,6 +32,7 @@ enum OptimizationMode: String, CaseIterable, Identifiable {
                 "yolo_food_s_seg_int8",
                 "yolo_food_s_seg_pruned",
                 "yolo_food_s_seg_fp16",
+                "yolo_food_n_seg_fp32",
                 "yolo_food_s_seg_fp32"
             ]
         }

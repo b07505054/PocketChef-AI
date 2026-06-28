@@ -3,7 +3,7 @@ import Foundation
 struct CompilerArtifactProvider: CompilerArtifactProviding {
     func loadServingExecutionPlan() async throws -> ServingExecutionPlanSummary {
         guard let url = Bundle.main.url(
-            forResource: "serving_execution_plan_iphone",
+            forResource: "serving_execution_plan_iphone15_5",
             withExtension: "json"
         ) else {
             throw PortfolioProviderError.notBundled

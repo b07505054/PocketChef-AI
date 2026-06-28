@@ -13,3 +13,7 @@ models/*.mlmodelc
 xcuserdata/
 *.xcuserstate
 runs/
+venv-export/
+*.pt
+*.onnx
+*.mlpackage

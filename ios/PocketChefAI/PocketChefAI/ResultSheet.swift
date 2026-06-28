@@ -493,6 +493,7 @@ struct ResultSheet: View {
             row("Model", plan.modelName)
             row("Target", plan.targetProfileId)
             row("Decision", plan.decisionSource)
+            row("Truth", plan.truthBoundary)
 
             HStack(alignment: .firstTextBaseline) {
                 Text("Cost source")

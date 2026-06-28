@@ -1,9 +1,9 @@
 {
   "artifact_type": "model_export_report",
-  "source_model": "yolov8s-seg.pt",
+  "source_model": "yolov8n-seg.pt",
   "image_size": 640,
   "outputs": {
-    "onnx": "models/yolo_food_s_seg_fp32.onnx",
-    "coreml": "models/yolo_food_s_seg_fp32.mlpackage"
+    "onnx": "models/yolo_food_n_seg_fp32.onnx",
+    "coreml": "models/yolo_food_n_seg_fp32.mlpackage"
   }
 }
