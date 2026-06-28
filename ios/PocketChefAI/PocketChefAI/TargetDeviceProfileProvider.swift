@@ -19,7 +19,18 @@ struct TargetDeviceProfileProvider: TargetDeviceProfileProviding {
         let isLowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
 
         // UIDevice — MainActor-isolated in iOS SDK
-        let systemVersion = await MainActor.run { UIDevice.current.systemVersion }
+        let (systemVersion, systemName) = await MainActor.run {
+            (UIDevice.current.systemVersion, UIDevice.current.systemName)
+        }
+
+        let activeProcessorCount = ProcessInfo.processInfo.activeProcessorCount
+
+        let isSimulator: Bool
+#if targetEnvironment(simulator)
+        isSimulator = true
+#else
+        isSimulator = false
+#endif
 
         let modelIdentifier = Self.modelIdentifier()
         let chipName = Self.chipName(from: metalName)
@@ -41,7 +52,11 @@ struct TargetDeviceProfileProvider: TargetDeviceProfileProviding {
             isLowPowerMode: isLowPowerMode,
             iosVersion: systemVersion,
             truthBoundary: PortfolioTruthBoundary.deviceProfile,
-            collectedAt: Date()
+            collectedAt: Date(),
+            schemaVersion: "1.0.0",
+            systemName: systemName,
+            activeProcessorCount: activeProcessorCount,
+            isSimulator: isSimulator
         )
     }
 

@@ -5,6 +5,7 @@ struct ResultSheet: View {
     @ObservedObject var viewModel: CameraViewModel
     var traceDomain: RuntimeTracePlaybackDomain? = nil
     var servingPlan: ServingExecutionPlanSummary? = nil
+    var deviceProfile: TargetDeviceProfile? = nil
     var onReturnToCamera: () -> Void = {}
     @AppStorage("ollamaHost") private var ollamaHost = "http://127.0.0.1:11434"
     @AppStorage("ollamaModel") private var ollamaModel = "qwen2.5:3b-instruct"
@@ -459,6 +460,16 @@ struct ResultSheet: View {
                 Label("Copy iPhone memory JSON", systemImage: "memorychip.fill")
                     .font(.caption.weight(.black))
                     .foregroundStyle(.white.opacity(0.86))
+            }
+
+            if let dp = deviceProfile {
+                Button {
+                    UIPasteboard.general.string = deviceProfileJSON(from: dp)
+                } label: {
+                    Label("Copy device profile JSON", systemImage: "antenna.radiowaves.left.and.right")
+                        .font(.caption.weight(.black))
+                        .foregroundStyle(.white.opacity(0.86))
+                }
             }
         }
         .cardStyle()

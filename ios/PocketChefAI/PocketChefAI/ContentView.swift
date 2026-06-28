@@ -89,7 +89,9 @@ struct ContentView: View {
         }
         .task {
             viewModel.start()
-            await coordinator.loadCompilerArtifacts()
+            async let _device: Void    = coordinator.refreshDeviceProfile()
+            async let _artifacts: Void = coordinator.loadCompilerArtifacts()
+            _ = await (_device, _artifacts)
         }
         .onDisappear {
             viewModel.stop()
@@ -98,7 +100,8 @@ struct ContentView: View {
             ResultSheet(
                 viewModel: viewModel,
                 traceDomain: coordinator.trace,
-                servingPlan: coordinator.compiler.servingPlan
+                servingPlan: coordinator.compiler.servingPlan,
+                deviceProfile: coordinator.device.profile
             ) {
                 showsResultSheet = false
             }

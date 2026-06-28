@@ -36,6 +36,10 @@ struct TargetDeviceProfile: Codable, Equatable {
     let iosVersion: String
     let truthBoundary: String
     let collectedAt: Date
+    let schemaVersion: String
+    let systemName: String
+    let activeProcessorCount: Int
+    let isSimulator: Bool
 
     static var preview: TargetDeviceProfile {
         TargetDeviceProfile(
@@ -51,7 +55,11 @@ struct TargetDeviceProfile: Codable, Equatable {
             isLowPowerMode: false,
             iosVersion: "18.3.2",
             truthBoundary: PortfolioTruthBoundary.deviceProfile,
-            collectedAt: Date()
+            collectedAt: Date(),
+            schemaVersion: "1.0.0",
+            systemName: "iPhone OS",
+            activeProcessorCount: 6,
+            isSimulator: false
         )
     }
 }
