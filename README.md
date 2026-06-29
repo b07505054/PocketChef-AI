@@ -4,6 +4,24 @@ PocketChef-AI is a native iOS food segmentation app and mobile ML compiler/runti
 
 The first screen is the camera. The current debug build captures an iPhone frame, runs YOLO-Seg/Core ML segmentation, draws a filled target mask, reports FPS, p50/p95 latency, active model, and optimization mode, then turns the selected visual target into a local recipe/nutrition snapshot.
 
+## Recent Updates
+
+- Added a portfolio artifact provider layer for compiler, runtime, validation,
+  and target-device profile artifacts.
+- Imported frontend-normalized Qwen runtime trace and iPhone 15 compiler
+  serving-plan artifacts for app-side inspection.
+- Added runtime trace playback engine/card UI so the app can display
+  artifact-backed runtime decisions without claiming live iPhone graph
+  compilation.
+- Added device profile export for compiler-repo target-profile input.
+- Added Core ML load diagnostics and a Core ML device benchmark section in the
+  result sheet.
+
+Truth boundary: PocketChef imports compiler/runtime artifacts on the app side
+and runs the Core ML/Vision segmentation path. It does not live-compile the
+YOLO-Seg graph on iPhone, and the Mac-side compiler/runtime artifacts should
+not be described as live iPhone Metal dispatch evidence.
+
 ## Edge AI Systems Map
 
 PocketChef-AI is the mobile Edge AI demo shell that connects three systems repos into one visible iPhone experience:
@@ -253,7 +271,11 @@ PocketChef-AI is intentionally more than a recipe app. It is a portfolio-grade m
 | All | best measured model + runtime + compiler plan | combine only artifact-backed decisions | pending end-to-end measurement | PocketChef-AI |
 | LLM | selected ingredient context + typed question | Ollama local streaming decode | TTFT / total latency / tokens/sec | PocketChef-AI |
 
-`inference-validation-platform` remains optional validation evidence. The old `mini-llm-serving-runtime-demo` shell is replaced by PocketChef's LLM serving evidence bridge, which imports serving artifacts directly from the primary compiler/runtime repos.
+`inference-validation-platform` remains optional validation evidence.
+`mini-llm-serving-runtime-demo` remains the separate HTML workbench for
+compiler/runtime/validation interviews; PocketChef-AI is the native iOS/mobile
+ML front end for audiences that value SwiftUI, AVFoundation, Vision/Core ML,
+and on-device app experience.
 
 ## Repo Layout
 
@@ -386,7 +408,10 @@ The Snapshot Sheet LLM panel has its own systems modes:
 
 ### LLM Serving Evidence Bridge
 
-PocketChef replaces the old `mini-llm-serving-runtime-demo` shell by importing LLM serving evidence directly from the primary systems repos:
+PocketChef imports LLM serving evidence from the primary systems repos for the
+native iOS app experience. It is separate from
+`mini-llm-serving-runtime-demo`, which remains the HTML workbench for explaining
+compiler/runtime/validation artifacts without Xcode or an iPhone.
 
 ```text
 ml-graph-compiler-runtime/artifacts/apple_demo
@@ -637,4 +662,5 @@ steps.
 - Real YOLO segmentation model artifacts: implemented.
 - Recipe, nutrition, and Visual Intelligence snapshot: implemented with a local deterministic planner.
 - Free Ollama LLM ask path: implemented with local LAN serving metrics.
-- LLM serving evidence bridge replacing `mini-llm-serving-runtime-demo`: implemented.
+- LLM serving evidence bridge for the iOS app: implemented.
+- Separate `mini-llm-serving-runtime-demo` HTML workbench: maintained as its own demo surface.
